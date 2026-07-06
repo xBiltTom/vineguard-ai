@@ -1,0 +1,76 @@
+# Jupyter notebooks
+DiagnosticoUvas.ipynb
+DiagnosticoUvasNModelos.ipynb
+.ipynb_checkpoints/
+
+# Python virtual environment
+venv/
+.venv/
+env/
+.env/
+ENV/
+virtualenv/
+
+# Python cache/bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyz
+
+# Model files (TensorFlow/Keras)
+*.h5
+*.hdf5
+*.keras
+*.pb
+models/
+saved_models/
+model_data/
+
+# Dataset directories
+dataset/
+data/
+images/
+input/
+datasets/
+
+# Streamlit
+.streamlit/
+
+# Generated reports
+*.pdf
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# TensorFlow logs
+logs/
+lightning_logs/
+graph/
+
+# Environment variables
+.env
+.env.local
+.env.*
+
+# Cache directories
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.python-version
+
+# Temporary files
+tmp/
+temp/
