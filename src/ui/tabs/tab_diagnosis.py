@@ -89,14 +89,26 @@ def render():
                     if r['predicted_class'] == consensus
                 ])
 
-                # Mostrar consenso
-                col1, col2, col3 = st.columns([2, 1, 1])
-                with col1:
-                    st.info(f"**{t('diagnosis.final_diagnosis')}** {get_disease_name(consensus)}")
-                with col2:
-                    st.metric(t('diagnosis.agreement'), f"{consensus_count}/{len(predictions)}")
-                with col3:
-                    st.metric(t('diagnosis.confidence'), f"{consensus_confidence:.1%}")
+                # Mostrar consenso (Estilo Botánico/Laboratorio)
+                disease_name = get_disease_name(consensus)
+                is_disease = consensus != 2  # 2 es 'Healthy' en DISEASE_CLASSES
+                disease_class = "disease" if is_disease else ""
+                
+                ticket_html = f"""
+                <div class="lab-ticket {disease_class}">
+                    <span class="lab-ticket-eyebrow">{t('diagnosis.final_diagnosis')}</span>
+                    <h2 class="lab-ticket-title">{disease_name}</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+                        <span class="lab-ticket-confidence">
+                            <strong>{consensus_confidence:.1%}</strong> {t('diagnosis.confidence').lower()}
+                        </span>
+                        <span style="font-family: 'Inter', sans-serif; color: #6C7A70; font-size: 0.9rem;">
+                            {t('diagnosis.agreement')}: {consensus_count}/{len(predictions)}
+                        </span>
+                    </div>
+                </div>
+                """
+                st.markdown(ticket_html, unsafe_allow_html=True)
 
                 # Gráfico de probabilidades MODERNO
                 st.subheader(f"📊 {t('diagnosis.probability_distribution')}")
@@ -124,12 +136,9 @@ def render():
                         row = (i // cols_plotly) + 1
                         col = (i % cols_plotly) + 1
 
-                        # Colores según tipo de modelo
-                        if "Hybrid" in result['model_name']:
-                            colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c']
-                        else:
-                            colors = ['#74b9ff', '#00cec9', '#00b894', '#fdcb6e']
-
+                        # Colores botánicos: Black Rot (Rojo), Esca (Marrón), Sano (Verde), Blight (Mostaza)
+                        colors = ['#8C4545', '#A67C52', '#415D48', '#C49A45']
+                        
                         probs = result['all_predictions']
 
                         fig.add_trace(
@@ -189,12 +198,12 @@ def render():
                         probs = result['all_predictions']
                         disease_names_translated = [get_disease_name(cls) for cls in DISEASE_CLASSES]
 
-                        # Colores modernos
+                        # Colores botánicos: Black Rot (Rojo), Esca (Marrón), Sano (Verde), Blight (Mostaza)
+                        colors = ['#8C4545', '#A67C52', '#415D48', '#C49A45']
+                        
                         if "Hybrid" in result['model_name']:
-                            colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c']
                             title = f"🌟 {result['model_name']}"
                         else:
-                            colors = ['#74b9ff', '#00cec9', '#00b894', '#fdcb6e']
                             title = f"🤖 {result['model_name']}"
 
                         # Crear barras con gradiente

@@ -22,159 +22,132 @@ DISEASE_CLASSES = ["Black_rot", "Esca", "Healthy", "Leaf_blight"]
 # ======= CSS PERSONALIZADO =======
 CUSTOM_CSS = """
 <style>
-    /* Diseño responsive */
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap');
+
+    /* Global */
     .main .block-container {
-        padding: 1rem;
-        max-width: 800px;
+        padding: 2rem 1rem;
+        max-width: 900px;
     }
     
-    /* Botones grandes para móviles */
-    .stButton button {
-        width: 100%;
-        padding: 0.75rem;
-        font-size: 1rem;
-        background-color: #6a0dad;
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Lora', serif !important;
+    }
+    
+    p, span, div {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* === SIGNATURE ELEMENT: The Lab Ticket === */
+    .lab-ticket {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        border-top: 4px solid #415D48; /* default healthy green */
+        padding: 2rem;
+        border-radius: 4px;
+        margin: 2rem 0;
+    }
+    
+    .lab-ticket.disease {
+        border-top-color: #8C4545; /* Rust red for disease */
+    }
+    
+    .lab-ticket-eyebrow {
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        color: var(--text-color);
+        opacity: 0.7;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .lab-ticket-title {
+        font-family: 'Lora', serif;
+        font-size: 2.25rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        line-height: 1.2;
+    }
+    
+    .lab-ticket-confidence {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 500;
         color: white;
-        border-radius: 10px;
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: #415D48;
+        border-radius: 20px;
+    }
+    .lab-ticket.disease .lab-ticket-confidence {
+        background-color: #8C4545;
+    }
+
+    /* === DATA BOXES (Theory, Information, Warnings) === */
+    .tech-box {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        padding: 1.5rem;
+        border-radius: 4px;
+        margin: 1rem 0;
     }
     
-    /* Mejoras visuales */
-    .stAlert {
+    .tech-box h4 {
+        margin-top: 0;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.8;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .tech-box p {
+        line-height: 1.6;
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+    
+    /* Clean up Streamlit defaults */
+    [data-testid="stMetric"] {
+        background-color: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.2);
         padding: 1rem;
-        border-radius: 10px;
+        border-radius: 4px;
+    }
+    [data-testid="stMetricLabel"] {
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+    [data-testid="stMetricValue"] {
+        font-family: 'Lora', serif !important;
+    }
+
+    /* Buttons */
+    .stButton button {
+        border-radius: 4px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        transition: opacity 0.2s ease;
     }
     
-    /* Ocultar elementos innecesarios */
+    /* Image container */
+    [data-testid="stImage"] {
+        border-radius: 4px;
+        border: 1px solid rgba(128, 128, 128, 0.2);
+        overflow: hidden;
+    }
+
+    /* Hide elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
-    /* Estilo para métricas */
-    [data-testid="metric-container"] {
-        background-color: #f0f2f6;
-        border: 1px solid #e0e2e6;
-        padding: 10px;
-        border-radius: 10px;
-        margin: 5px;
-    }
-    
-    /* Estilo para estadísticas */
-    .statistical-box {
-        background-color: #e8f4f8;
-        border: 2px solid #2e86ab;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    
-    /* Estilo para cajas de teoría */
-    .theory-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 20px;
-        border-radius: 15px;
-        color: white;
-        margin: 10px 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .theory-box h4 {
-        color: white !important;
-        margin-bottom: 10px;
-    }
-    
-    .theory-box p {
-        color: #f0f0f0 !important;
-        line-height: 1.6;
-    }
-    
-    /* Estilo para carpetas de enfermedades */
-    .disease-folder {
-        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-        padding: 20px;
-        border-radius: 15px;
-        margin: 10px 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid #ff6b6b;
-    }
-    
-    .disease-folder.black-rot {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
-        border-color: #dc3545;
-    }
-    
-    .disease-folder.esca {
-        background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
-        border-color: #8B4513;
-    }
-    
-    .disease-folder.healthy {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border-color: #28a745;
-    }
-    
-    .disease-folder.leaf-blight {
-        background: linear-gradient(135deg, #ffc107 0%, #ffeb3b 100%);
-        border-color: #ffc107;
-    }
-    
-    /* Resultados destacados */
-    .result-highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 20px;
-        border-radius: 15px;
-        color: white;
-        margin: 15px 0;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    
-    .interpretation-box {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        padding: 25px;
-        border-radius: 15px;
-        color: white;
-        margin: 20px 0;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-    
-    .interpretation-box h3 {
-        color: white !important;
-        margin-bottom: 15px;
-    }
-    
-    .interpretation-box p {
-        color: #f0f0f0 !important;
-        font-size: 1.1em;
-        line-height: 1.7;
-    }
-    
-    /* Nuevos estilos para gráficos mejorados */
-    .stats-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        padding: 20px;
-        border-radius: 15px;
-        color: white;
-        margin: 10px 0;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .metric-card {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        padding: 15px;
-        border-radius: 10px;
-        color: white;
-        margin: 5px;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    /* Estilo para selector de idioma */
-    .language-selector {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 10px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
 </style>
 """
 

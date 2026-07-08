@@ -26,9 +26,9 @@ def render():
         st.subheader(f"📈 {t('statistical.mcc_title')}")
 
         st.markdown(f"""
-        <div class="statistical-box" style="color: black;">
-        <h4 style="color: black;">🧮 ¿Qué es el Coeficiente de Matthews?</h4>
-        <p>{t('statistical.mcc_description')}</p>
+        <div class="tech-box">
+            <h4>🧮 ¿Qué es el Coeficiente de Matthews?</h4>
+            <p>{t('statistical.mcc_description')}</p>
         </div>
         """, unsafe_allow_html=True)
 

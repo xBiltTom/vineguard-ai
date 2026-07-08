@@ -67,7 +67,7 @@ def render():
 
         with col1:
             st.markdown(f"""
-            <div class="theory-box">
+            <div class="tech-box">
             <h4>{t('mcnemar.mcc_theory_title')}</h4>
             <p><strong>{t('mcnemar.mcc_theory_formula')}</strong></p>
             <p><strong>{t('mcnemar.mcc_theory_purpose')}</strong></p>
@@ -77,7 +77,7 @@ def render():
 
         with col2:
             st.markdown(f"""
-            <div class="theory-box">
+            <div class="tech-box">
             <h4>{t('mcnemar.mcnemar_theory_title')}</h4>
             <p><strong>{t('mcnemar.mcnemar_theory_formula')}</strong></p>
             <p><strong>{t('mcnemar.mcnemar_theory_purpose')}</strong></p>
@@ -117,11 +117,11 @@ def render():
                 folder_info = DISEASE_FOLDERS[disease_name]
 
                 st.markdown(f"""
-                <div class="disease-folder {folder_info['css_class']}">
+                <div class="tech-box">
                 <h4 style="text-align: center; margin-bottom: 10px;">
                 {folder_info['icon']} {disease_name}
                 </h4>
-                <p style="text-align: center; font-size: 0.9em; margin-bottom: 15px;">
+                <p style="text-align: center; font-size: 0.9em; margin-bottom: 0;">
                 {folder_info['description']}
                 </p>
                 </div>
@@ -175,10 +175,10 @@ def render():
                     colors = []
 
                     color_map = {
-                        get_disease_folder_info("Black_rot")['name']: "#e74c3c",
-                        get_disease_folder_info("Esca")['name']: "#8B4513",
-                        get_disease_folder_info("Healthy")['name']: "#27ae60",
-                        get_disease_folder_info("Leaf_blight")['name']: "#f39c12"
+                        get_disease_folder_info("Black_rot")['name']: "#8C4545",
+                        get_disease_folder_info("Esca")['name']: "#A67C52",
+                        get_disease_folder_info("Healthy")['name']: "#415D48",
+                        get_disease_folder_info("Leaf_blight")['name']: "#C49A45"
                     }
 
                     for disease_name, files in disease_files.items():
@@ -227,13 +227,10 @@ def render():
 
                             # ====== MOSTRAR RESULTADOS DESTACADOS ======
                             st.markdown(f"""
-                            <div class="result-highlight">
-                            <h2 style="color: white; text-align: center; margin-bottom: 20px;">
-                            ✅ {t('mcnemar.analysis_completed')}
-                            </h2>
-                            <p style="color: white; text-align: center; font-size: 1.2em;">
-                            {t('mcnemar.analysis_success')}
-                            </p>
+                            <div class="tech-box" style="text-align: center; border-top: 4px solid #415D48;">
+                            <span class="lab-ticket-eyebrow" style="margin-bottom: 10px;">ESTADO DEL PROCESO</span>
+                            <h2 style="margin-bottom: 10px;">✅ {t('mcnemar.analysis_completed')}</h2>
+                            <p style="font-size: 1.1em;">{t('mcnemar.analysis_success')}</p>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -288,10 +285,10 @@ def render():
 
                             # Destacar el mejor modelo
                             st.markdown(f"""
-                            <div class="stats-card">
-                            <h3 style="color: white; text-align: center;">🏆 {t('mcnemar.best_model_identified')}</h3>
-                            <h2 style="color: white; text-align: center; margin: 10px 0;">{best_model}</h2>
-                            <p style="color: white; text-align: center;">{t('mcnemar.based_on_mcc')}</p>
+                            <div class="tech-box" style="text-align: center;">
+                            <h4>🏆 {t('mcnemar.best_model_identified')}</h4>
+                            <h2 style="margin: 10px 0;">{best_model}</h2>
+                            <p>{t('mcnemar.based_on_mcc')}</p>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -367,9 +364,9 @@ def render():
                             interpretation = generate_interpretation_for_professor(mcnemar_analysis, validation_data)
 
                             st.markdown(f"""
-                            <div class="interpretation-box">
-                            <h3 style="color: white;">🎓 {t('mcnemar.academic_interpretation')}</h3>
-                            {interpretation.replace(chr(10), '<br>')}
+                            <div class="tech-box">
+                            <h4>🎓 {t('mcnemar.academic_interpretation')}</h4>
+                            <p>{interpretation.replace(chr(10), '<br>')}</p>
                             </div>
                             """, unsafe_allow_html=True)
 
