@@ -7,13 +7,13 @@ import streamlit as st
 
 # ======= RUTAS DE MODELOS =======
 MODEL_PATHS = {
-    "CNN Simple": "models/cnn_simple.h5",
-    "MobileNetV2": "models/mobilenetv2.h5",
-    "EfficientNet": "models/efficientnetb0.h5",
-    "DenseNet": "models/densenet121.h5",
-    # ===== NUEVOS MODELOS HÍBRIDOS =====
+    "CNN Simple":      "models/cnn_simple.h5",         # .h5 — compatible con patch
+    "MobileNetV2":     "models/mobilenetv2.keras",      # .keras — re-exportado desde Colab
+    "EfficientNet":    "models/efficientnetb0.keras",   # .keras — re-exportado desde Colab
+    "DenseNet":        "models/densenet121.keras",      # .keras — re-exportado desde Colab
+    # ===== MODELOS HÍBRIDOS =====
     "Hybrid MobileNet": "models/Hybrid_MobileNet_Final.h5",
-    "Hybrid DenseNet": "models/Hybrid_DenseNet_Final.h5"
+    "Hybrid DenseNet":  "models/Hybrid_DenseNet_Final.h5"
 }
 
 # ======= CLASES DE ENFERMEDADES =======

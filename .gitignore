@@ -74,3 +74,5 @@ graph/
 # Temporary files
 tmp/
 temp/
+
+scripts/

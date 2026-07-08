@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from PIL import Image
 import tensorflow as tf
+
 from tensorflow.keras.preprocessing.image import img_to_array
 
 from src.utils.config import DISEASE_CLASSES

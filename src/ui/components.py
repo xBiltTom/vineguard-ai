@@ -6,7 +6,8 @@ Contiene la barra lateral y widgets genéricos de Streamlit.
 import streamlit as st
 
 from src.locales.i18n import t
-from src.core.model_manager import load_models
+from src.core.model_manager import load_single_model
+from src.utils.config import MODEL_PATHS
 
 
 def render_sidebar():
@@ -47,13 +48,35 @@ def render_sidebar():
         # Cargar modelos si no están cargados
         if not st.session_state.models_loaded:
             if st.button(f"🚀 {t('sidebar.load_models')}", type="primary"):
-                with st.spinner(f"{t('sidebar.load_models')}..."):
-                    st.session_state.models = load_models()
-                    if st.session_state.models:
-                        st.session_state.models_loaded = True
-                        st.success(f"✅ {t('sidebar.models_loaded')}!")
+                model_names = list(MODEL_PATHS.keys())
+                total = len(model_names)
+                loaded = {}
+                errors = []
+
+                st.markdown("**Cargando modelos...**")
+                progress_bar = st.progress(0)
+                status_text  = st.empty()
+
+                for i, name in enumerate(model_names):
+                    status_text.markdown(f"⏳ `{name}` ({i+1}/{total})")
+                    model = load_single_model(name)
+                    if model is not None:
+                        loaded[name] = model
                     else:
-                        st.error("❌ No se pudieron cargar los modelos")
+                        errors.append(name)
+                    progress_bar.progress((i + 1) / total)
+
+                status_text.empty()
+
+                if loaded:
+                    st.session_state.models       = loaded
+                    st.session_state.models_loaded = True
+                    st.success(f"✅ {len(loaded)}/{total} modelos cargados")
+                    if errors:
+                        st.warning(f"⚠️ No se cargaron: {', '.join(errors)}")
+                else:
+                    st.error("❌ No se pudo cargar ningún modelo")
+
         else:
             st.success(f"✅ {t('sidebar.models_loaded')}")
 
