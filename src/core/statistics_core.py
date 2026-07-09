@@ -424,7 +424,8 @@ def create_beautiful_validation_charts(validation_data, mcnemar_analysis):
     best_model_idx = best_model_info['index']
     best_predictions = model_predictions[best_model_idx]
 
-    cm = confusion_matrix(y_true, best_predictions)
+    # Asegurar que la matriz siempre sea de tamaño num_classes x num_classes
+    cm = confusion_matrix(y_true, best_predictions, labels=range(len(DISEASE_CLASSES)))
     im = ax5.imshow(cm, interpolation='nearest', cmap='Blues', alpha=0.8)
     ax5.set_title(f'🎯 Matriz de Confusión\n{best_model_info["model"]}', fontsize=12, fontweight='bold', pad=20)
 
