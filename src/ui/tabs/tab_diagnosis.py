@@ -32,7 +32,7 @@ def render():
     if input_method == f"📷 {t('diagnosis.upload_image')}":
         uploaded_file = st.file_uploader(
             t('diagnosis.file_uploader'),
-            type=['jpg', 'jpeg', 'png'],
+            type=['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG', 'webp', 'bmp'],
             help=t('diagnosis.formats_help')
         )
 

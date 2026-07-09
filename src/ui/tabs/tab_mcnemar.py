@@ -130,7 +130,7 @@ def render():
                 # File uploader para cada enfermedad
                 uploaded_files = st.file_uploader(
                     f"{t('mcnemar.upload_images')} {disease_name}",
-                    type=['jpg', 'jpeg', 'png'],
+                    type=['jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG', 'webp', 'bmp'],
                     accept_multiple_files=True,
                     key=f"files_{disease_name}",
                     help=f"Arrastra aquí las imágenes de {disease_name}"
