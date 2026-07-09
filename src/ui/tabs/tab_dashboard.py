@@ -42,7 +42,9 @@ def load_dataset_stats(dataset_path):
         'classes': classes
     }
 
-def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
+import random
+
+def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224), balance=False):
     """Lógica de limpieza ejecutada desde la UI con feedback descriptivo e interactivo."""
     input_path = Path(input_dir)
     output_path = Path(output_dir)
@@ -54,8 +56,9 @@ def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
         st.error("No se encontraron clases en el directorio original.")
         return
         
-    stats = {"procesadas": 0, "corruptas": 0, "duplicadas": 0, "exportadas": 0}
+    stats = {"procesadas": 0, "corruptas": 0, "duplicadas": 0, "exportadas": 0, "aumentadas": 0}
     seen_hashes = set()
+    exported_per_class = {c: 0 for c in classes}
     
     # Calcular total para la barra de progreso
     total_files = sum([len([f for f in os.listdir(input_path / c) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]) for c in classes])
@@ -118,11 +121,48 @@ def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
                         
                         seen_hashes.add(img_hash)
                         stats["exportadas"] += 1
+                        exported_per_class[class_name] += 1
                 except Exception:
                     stats["corruptas"] += 1
                     continue
+        
+        # 4. Fase de Balanceo (Oversampling)
+        if balance and stats["exportadas"] > 0:
+            max_class_count = max(exported_per_class.values())
+            st.write(f"⚖️ **Iniciando Data Augmentation...** Objetivo por clase: {max_class_count} imágenes.")
+            
+            for class_name, count in exported_per_class.items():
+                if count < max_class_count and count > 0:
+                    deficit = max_class_count - count
+                    st.write(f"&nbsp;&nbsp;&nbsp;&nbsp;Generando {deficit} imágenes sintéticas para `{class_name}`...")
                     
-        status_panel.update(label="✅ Limpieza Finalizada", state="complete", expanded=False)
+                    class_output_dir = output_path / class_name
+                    clean_images = [f for f in os.listdir(class_output_dir) if f.lower().endswith('.jpg') and not f.startswith('aug_')]
+                    
+                    for i in range(deficit):
+                        # Escoger una imagen base aleatoria
+                        base_img_name = random.choice(clean_images)
+                        base_img_path = class_output_dir / base_img_name
+                        
+                        try:
+                            with Image.open(base_img_path) as img:
+                                # Aplicar transformación aleatoria
+                                transformation = random.choice([
+                                    Image.Transpose.FLIP_LEFT_RIGHT,
+                                    Image.Transpose.FLIP_TOP_BOTTOM,
+                                    Image.Transpose.ROTATE_90,
+                                    Image.Transpose.ROTATE_180,
+                                    Image.Transpose.ROTATE_270
+                                ])
+                                img_aug = img.transpose(transformation)
+                                
+                                aug_name = f"aug_{i}_{base_img_name}"
+                                img_aug.save(class_output_dir / aug_name, 'JPEG', quality=95)
+                                stats["aumentadas"] += 1
+                        except Exception as e:
+                            pass
+                            
+        status_panel.update(label="✅ Limpieza y Preprocesamiento Finalizado", state="complete", expanded=False)
 
     # Reporte Final super legible
     st.markdown("### 📋 Reporte de Curación de Datos")
@@ -130,13 +170,15 @@ def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
     st.markdown(f"""
     <div class="tech-box" style="border-left: 5px solid #415D48;">
         <h4>Resumen de Ejecución</h4>
-        <p>El pipeline finalizó el análisis estructural y criptográfico del dataset. A continuación se detallan los resultados:</p>
+        <p>El pipeline finalizó el análisis estructural, criptográfico y de balanceo del dataset. A continuación se detallan los resultados:</p>
         <ul>
             <li><strong>Imágenes Totales Escaneadas:</strong> {stats['procesadas']:,}</li>
             <li><strong style="color: #8C4545;">⚠️ Duplicados Eliminados:</strong> {stats['duplicadas']:,} <em>(Detectados vía Hash MD5)</em></li>
             <li><strong style="color: #8C4545;">❌ Archivos Corruptos/Rotos:</strong> {stats['corruptas']:,} <em>(0 KB o falla binaria)</em></li>
-            <li><strong style="color: #415D48;">✅ Imágenes Limpias y Normalizadas:</strong> {stats['exportadas']:,} <em>(Exportadas a 224x224 px)</em></li>
+            <li><strong style="color: #415D48;">✅ Imágenes Limpias Base:</strong> {stats['exportadas']:,} <em>(Exportadas a 224x224 px)</em></li>
+            <li><strong style="color: #A67C52;">🧬 Imágenes Sintéticas (Augmentation):</strong> {stats['aumentadas']:,} <em>(Generadas para igualar clases)</em></li>
         </ul>
+        <p><strong>Total de imágenes listas para entrenar:</strong> {stats['exportadas'] + stats['aumentadas']:,}</p>
         <p><strong>Destino:</strong> <code>{output_dir}</code></p>
     </div>
     """, unsafe_allow_html=True)
@@ -202,15 +244,18 @@ def render():
         1. **Filtro de Integridad:** Descarte de archivos de 0 KB y corruptos.
         2. **Deduplicación:** Uso de Hash MD5 para eliminar imágenes repetidas.
         3. **Normalización Geométrica:** Redimensionamiento estricto a 224x224 píxeles (formato `.jpg`).
+        4. **Balanceo (Data Augmentation):** Generación de imágenes sintéticas (rotación/volteo) para las clases minoritarias hasta igualarlas con la clase mayoritaria.
         """)
         
-        col_out, col_clean = st.columns([3, 1])
+        col_out, col_clean = st.columns([2, 1])
         with col_out:
             output_dir = st.text_input("Ruta de exportación (Dataset Limpio):", value="dataset_cleaned/")
+            balance_classes = st.checkbox("⚖️ Aplicar Balanceo (Data Augmentation) para igualar clases", value=True)
+            
         with col_clean:
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🧼 Iniciar Limpieza", type="primary", use_container_width=True):
-                clean_dataset_ui(st.session_state.dataset_path, output_dir)
+            if st.button("🧼 Iniciar Limpieza y Balanceo", type="primary", use_container_width=True):
+                clean_dataset_ui(st.session_state.dataset_path, output_dir, balance=balance_classes)
                 
     else:
         st.info("👆 Por favor, ingresa la ruta del dataset y presiona 'Analizar Dataset' para visualizar el EDA.")
