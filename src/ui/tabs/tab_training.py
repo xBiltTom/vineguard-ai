@@ -3,16 +3,22 @@ Pestaña de Configuración de Entrenamiento y Validación Cruzada.
 """
 
 import streamlit as st
-import time
 from src.locales.i18n import t
 
 def render():
     st.header("⚙️ Configuración de Entrenamiento y Tuning")
     
+    # 1. Verificar si el dataset fue cargado en la Pestaña 1
+    if 'dataset_stats' not in st.session_state or st.session_state.dataset_stats is None:
+        st.warning("⚠️ No se ha detectado ningún dataset.")
+        st.info("👉 Ve a la sección **1. EDA & Dashboard** para cargar y analizar la carpeta de imágenes antes de intentar configurar el entrenamiento.")
+        return
+        
+    st.markdown(f"**Dataset detectado:** {st.session_state.dataset_path} ({st.session_state.dataset_stats['total']:,} imágenes en {len(st.session_state.dataset_stats['classes'])} clases)")
+    st.markdown("---")
+    
     st.markdown("""
     En esta sección se configuran los parámetros para el entrenamiento de los 5 modelos (3 clásicos, 2 híbridos).
-    Debido a restricciones computacionales, la ejecución real del entrenamiento está optimizada para Google Colab,
-    pero aquí se define el flujo (Pipeline) requerido.
     """)
     
     col1, col2 = st.columns(2)
@@ -30,34 +36,27 @@ def render():
         
         st.markdown("""
         <div class="tech-box">
-        <h4>Modelos a Entrenar</h4>
+        <h4>Modelos en el Pipeline</h4>
         <ul>
-            <li>MobileNetV2 (Clásico - Transfer Learning)</li>
-            <li>EfficientNetB0 (Clásico - Transfer Learning)</li>
-            <li>DenseNet121 (Clásico - Transfer Learning)</li>
-            <li>MobileNet+SVM (Híbrido)</li>
-            <li>DenseNet+RF (Híbrido)</li>
+            <li>MobileNetV2 (Transfer Learning)</li>
+            <li>EfficientNetB0 (Transfer Learning)</li>
+            <li>DenseNet121 (Transfer Learning)</li>
+            <li>CNN + SVM (Arquitectura Híbrida)</li>
+            <li>CNN + RF (Arquitectura Híbrida)</li>
         </ul>
         </div>
         """, unsafe_allow_html=True)
         
     st.markdown("---")
     
-    if st.button("🚀 Iniciar Entrenamiento (Simulación)", type="primary"):
-        with st.status("Ejecutando Pipeline de Entrenamiento (Simulado)...", expanded=True) as status:
-            st.write(f"Iniciando Validacion Cruzada con {cv_folds} folds...")
-            time.sleep(1)
-            
-            progress_bar = st.progress(0)
-            
-            models = ["MobileNetV2", "EfficientNetB0", "DenseNet121", "Hybrid_SVM", "Hybrid_RF"]
-            for i, model in enumerate(models):
-                st.write(f"Entrenando {model} con LR={learning_rate}, Dropout={dropout_rate}...")
-                for fold in range(1, cv_folds + 1):
-                    time.sleep(0.3)
-                    progress_bar.progress((i * cv_folds + fold) / (len(models) * cv_folds))
-                st.write(f"✅ {model} completado. Guardando como `{model}_best.h5`")
-                
-            status.update(label="Entrenamiento Finalizado.", state="complete", expanded=False)
-            
-        st.success("¡El mejor modelo (MobileNetV2) ha sido grabado como `.h5` para inferencia!")
+    # Restricción de Hardware (Honestidad)
+    st.markdown("""
+    <div style="background-color: rgba(140, 69, 69, 0.1); border-left: 4px solid #8C4545; padding: 15px; margin: 10px 0;">
+        <h4 style="margin-top: 0; color: #8C4545;">⚠️ Entrenamiento Deshabilitado (Restricción de Hardware)</h4>
+        <p>Entrenar 5 arquitecturas profundas con Validación Cruzada de 5-folds sobre miles de imágenes requiere de aceleración por hardware (GPU/TPU).
+        Ejecutar este flujo en la CPU local provocaría un colapso del sistema o demoraría múltiples días.</p>
+        <p><strong>Solución:</strong> Se recomienda exportar la configuración de hiperparámetros y ejecutar los scripts de entrenamiento en un entorno con GPUs como Google Colab.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.button("🚫 Iniciar Entrenamiento", type="primary", disabled=True, help="Deshabilitado por falta de GPU.")
