@@ -3,11 +3,21 @@ Pestaña de Dashboard y Análisis Exploratorio de Datos (EDA).
 """
 
 import os
+import hashlib
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from PIL import Image
 from src.locales.i18n import t
+
+def get_image_hash(image_path):
+    """Calcula el hash MD5 para detectar duplicados."""
+    hash_md5 = hashlib.md5()
+    with open(image_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 def load_dataset_stats(dataset_path):
     """Cuenta el número de imágenes por cada subcarpeta en el dataset."""
@@ -16,7 +26,6 @@ def load_dataset_stats(dataset_path):
     
     classes = {}
     total_images = 0
-    # Asumimos estructura: dataset_path / clase / imagenes.jpg
     for class_name in os.listdir(dataset_path):
         class_path = os.path.join(dataset_path, class_name)
         if os.path.isdir(class_path):
@@ -33,72 +42,161 @@ def load_dataset_stats(dataset_path):
         'classes': classes
     }
 
+def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
+    """Lógica de limpieza ejecutada desde la UI con feedback en tiempo real."""
+    input_path = Path(input_dir)
+    output_path = Path(output_dir)
+    
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    classes = [d for d in os.listdir(input_path) if os.path.isdir(input_path / d)]
+    if not classes:
+        st.error("No se encontraron clases en el directorio.")
+        return
+        
+    stats = {"procesadas": 0, "corruptas": 0, "duplicadas": 0, "exportadas": 0}
+    seen_hashes = set()
+    
+    # Calcular total para la barra de progreso
+    total_files = sum([len([f for f in os.listdir(input_path / c) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]) for c in classes])
+    
+    if total_files == 0:
+        st.error("No hay imágenes válidas para limpiar.")
+        return
+
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    
+    for class_name in classes:
+        class_input_dir = input_path / class_name
+        class_output_dir = output_path / class_name
+        class_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        images = [f for f in os.listdir(class_input_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
+        
+        for img_name in images:
+            stats["procesadas"] += 1
+            img_path = class_input_dir / img_name
+            
+            # Actualizar UI cada 50 imágenes para no trabar Streamlit
+            if stats["procesadas"] % 50 == 0:
+                progress_bar.progress(stats["procesadas"] / total_files)
+                status_text.markdown(f"⏳ Limpiando `{class_name}`... ({stats['procesadas']}/{total_files})")
+            
+            # 1. Filtro de integridad
+            if os.path.getsize(img_path) == 0:
+                stats["corruptas"] += 1
+                continue
+                
+            # 2. Duplicados
+            img_hash = get_image_hash(img_path)
+            if img_hash in seen_hashes:
+                stats["duplicadas"] += 1
+                continue
+                
+            # 3. Calidad y Resize
+            try:
+                with Image.open(img_path) as img:
+                    img.verify()
+                
+                with Image.open(img_path) as img:
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    img_resized = img.resize(target_size, Image.Resampling.LANCZOS)
+                    
+                    new_name = f"{img_hash[:8]}_{img_name}"
+                    if not new_name.lower().endswith('.jpg'):
+                        new_name = new_name.rsplit('.', 1)[0] + '.jpg'
+                        
+                    export_path = class_output_dir / new_name
+                    img_resized.save(export_path, 'JPEG', quality=95)
+                    
+                    seen_hashes.add(img_hash)
+                    stats["exportadas"] += 1
+            except Exception:
+                stats["corruptas"] += 1
+                continue
+
+    progress_bar.progress(1.0)
+    status_text.empty()
+    
+    st.success(f"✅ ¡Limpieza Finalizada! Las imágenes limpias se guardaron en: `{output_dir}`")
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Exportadas (Sanas)", stats["exportadas"])
+    col2.metric("Duplicadas Eliminadas", stats["duplicadas"])
+    col3.metric("Corruptas Eliminadas", stats["corruptas"])
+
+
 def render():
     st.header("📈 Dashboard & Análisis Exploratorio (EDA)")
     
     # Input para la ruta del dataset
-    st.markdown("### 📁 Cargar Dataset")
+    st.markdown("### 📁 1. Cargar Dataset Original")
     col_path, col_btn = st.columns([3, 1])
     with col_path:
-        dataset_path = st.text_input("Ruta del dataset en el proyecto:", value="dataset/", help="Ruta relativa o absoluta a la carpeta que contiene las clases.")
+        dataset_path = st.text_input("Ruta del dataset sucio:", value="dataset/", key="dataset_path_input")
     with col_btn:
-        st.markdown("<br>", unsafe_allow_html=True) # Espaciado alineado
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("📊 Analizar Dataset", use_container_width=True):
             with st.spinner("Analizando directorios..."):
                 stats = load_dataset_stats(dataset_path)
                 if stats:
                     st.session_state.dataset_stats = stats
                     st.session_state.dataset_path = dataset_path
-                    st.success("Dataset cargado y analizado exitosamente.")
+                    st.success("Dataset cargado exitosamente.")
                 else:
                     st.error(f"No se encontraron imágenes válidas en la ruta: {dataset_path}")
 
-    # Si hay datos cargados, mostramos el EDA
+    # Si hay datos cargados, mostramos el EDA y la opción de limpiar
     if 'dataset_stats' in st.session_state and st.session_state.dataset_stats is not None:
         stats = st.session_state.dataset_stats
         
         st.markdown("---")
-        st.subheader("🔍 Resultados del Análisis Exploratorio")
+        st.subheader("🔍 2. Análisis Exploratorio (EDA)")
         
-        # KPIs Rápidos
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Imágenes", f"{stats['total']:,}")
         with col2:
             st.metric("Clases Detectadas", len(stats['classes']))
         with col3:
-            # Detectar balanceo simple
             min_class = min(stats['classes'].values())
             max_class = max(stats['classes'].values())
             desbalance = "Alto" if (max_class / min_class) > 2 else "Aceptable"
             st.metric("Desbalanceo de Clases", desbalance)
             
-        # Gráficos EDA reales
         df = pd.DataFrame(list(stats['classes'].items()), columns=['Clase', 'Cantidad'])
         
         col_plot1, col_plot2 = st.columns(2)
-        
         with col_plot1:
-            st.markdown("**Distribución de Imágenes por Clase**")
             fig = px.bar(df, x='Clase', y='Cantidad', color='Clase', 
-                         color_discrete_sequence=['#8C4545', '#A67C52', '#C49A45', '#415D48', '#5D6D7E', '#1ABC9C'])
+                         color_discrete_sequence=['#8C4545', '#A67C52', '#C49A45', '#415D48'])
             fig.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig, use_container_width=True)
             
         with col_plot2:
-            st.markdown("**Proporción del Dataset**")
             fig2 = px.pie(df, values='Cantidad', names='Clase', hole=0.4,
-                          color='Clase', color_discrete_sequence=['#8C4545', '#A67C52', '#C49A45', '#415D48', '#5D6D7E', '#1ABC9C'])
+                          color='Clase', color_discrete_sequence=['#8C4545', '#A67C52', '#C49A45', '#415D48'])
             fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)')
             st.plotly_chart(fig2, use_container_width=True)
             
+        st.markdown("---")
+        st.subheader("🧹 3. Pipeline de Limpieza de Datos")
         st.markdown("""
-        <div class="tech-box">
-        <h4>🧹 Nota sobre Limpieza de Datos</h4>
-        <p>Al tratarse de un dataset pre-curado de imágenes (PlantVillage), la limpieza tradicional de datos tabulares (outliers, valores nulos) no aplica directamente. 
-        El <strong>Análisis Exploratorio de Datos (EDA)</strong> en este contexto se centra en la distribución de clases, la resolución geométrica unificada (típicamente 256x256) 
-        y la validación de integridad de los formatos de archivo.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        El pipeline aplicará los siguientes pasos directamente desde esta interfaz, leyendo el dataset original y escribiendo los resultados en la ruta de exportación, evitando saturar la memoria RAM:
+        1. **Filtro de Integridad:** Descarte de archivos de 0 KB y corruptos.
+        2. **Deduplicación:** Uso de Hash MD5 para eliminar imágenes repetidas.
+        3. **Normalización Geométrica:** Redimensionamiento estricto a 224x224 píxeles (formato `.jpg`).
+        """)
+        
+        col_out, col_clean = st.columns([3, 1])
+        with col_out:
+            output_dir = st.text_input("Ruta de exportación (Dataset Limpio):", value="dataset_cleaned/")
+        with col_clean:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🧼 Iniciar Limpieza", type="primary", use_container_width=True):
+                clean_dataset_ui(st.session_state.dataset_path, output_dir)
+                
     else:
-        st.info("👆 Por favor, ingresa la ruta de la carpeta de imágenes y presiona 'Analizar Dataset' para visualizar el EDA.")
+        st.info("👆 Por favor, ingresa la ruta del dataset y presiona 'Analizar Dataset' para visualizar el EDA.")

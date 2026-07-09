@@ -2,25 +2,48 @@
 Pestaña de Configuración de Entrenamiento y Validación Cruzada.
 """
 
+import os
 import streamlit as st
 from src.locales.i18n import t
 
 def render():
     st.header("⚙️ Configuración de Entrenamiento y Tuning")
     
-    # 1. Verificar si el dataset fue cargado en la Pestaña 1
-    if 'dataset_stats' not in st.session_state or st.session_state.dataset_stats is None:
-        st.warning("⚠️ No se ha detectado ningún dataset.")
-        st.info("👉 Ve a la sección **1. EDA & Dashboard** para cargar y analizar la carpeta de imágenes antes de intentar configurar el entrenamiento.")
-        return
-        
-    st.markdown(f"**Dataset detectado:** {st.session_state.dataset_path} ({st.session_state.dataset_stats['total']:,} imágenes en {len(st.session_state.dataset_stats['classes'])} clases)")
-    st.markdown("---")
-    
     st.markdown("""
     En esta sección se configuran los parámetros para el entrenamiento de los 5 modelos (3 clásicos, 2 híbridos).
+    Para comenzar, selecciona el dataset sobre el cual se entrenarán los modelos.
     """)
     
+    # 1. Selección del Dataset para Entrenar
+    st.markdown("### 📁 Selección de Dataset")
+    col_path, col_btn = st.columns([3, 1])
+    with col_path:
+        # Por defecto sugiere la ruta del dataset limpiado si existe
+        default_path = "dataset_cleaned/" if os.path.exists("dataset_cleaned/") else "dataset/"
+        train_dataset_path = st.text_input("Ruta del dataset para entrenar:", value=default_path, help="Ruta relativa de las imágenes (idealmente el dataset limpiado).")
+    
+    with col_btn:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("✔️ Validar Ruta", use_container_width=True):
+            if os.path.exists(train_dataset_path):
+                classes = [d for d in os.listdir(train_dataset_path) if os.path.isdir(os.path.join(train_dataset_path, d))]
+                if classes:
+                    st.success(f"Dataset válido con {len(classes)} clases detectadas.")
+                    st.session_state.train_dataset_valid = True
+                else:
+                    st.error("Ruta válida, pero no contiene subcarpetas de clases.")
+                    st.session_state.train_dataset_valid = False
+            else:
+                st.error("La ruta especificada no existe.")
+                st.session_state.train_dataset_valid = False
+
+    st.markdown("---")
+    
+    # Si la ruta no está validada, bloqueamos el resto visualmente
+    if not st.session_state.get('train_dataset_valid', False):
+        st.info("👆 Por favor, ingresa la ruta del dataset (crudo o limpio) y presiona 'Validar Ruta' para habilitar el panel de entrenamiento.")
+        return
+        
     col1, col2 = st.columns(2)
     
     with col1:
@@ -55,7 +78,7 @@ def render():
         <h4 style="margin-top: 0; color: #8C4545;">⚠️ Entrenamiento Deshabilitado (Restricción de Hardware)</h4>
         <p>Entrenar 5 arquitecturas profundas con Validación Cruzada de 5-folds sobre miles de imágenes requiere de aceleración por hardware (GPU/TPU).
         Ejecutar este flujo en la CPU local provocaría un colapso del sistema o demoraría múltiples días.</p>
-        <p><strong>Solución:</strong> Se recomienda exportar la configuración de hiperparámetros y ejecutar los scripts de entrenamiento en un entorno con GPUs como Google Colab.</p>
+        <p><strong>Solución para escalar:</strong> Toma tu carpeta <code>dataset_cleaned/</code>, súbela a Google Drive, y ejecuta la lógica de entrenamiento en Google Colab con hardware gratuito acelerado.</p>
     </div>
     """, unsafe_allow_html=True)
     
