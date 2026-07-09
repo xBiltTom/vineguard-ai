@@ -42,9 +42,6 @@ def main():
     st.title(f"🍇 {t('app_title')}")
     st.markdown(f"*{t('app_description')}*")
 
-    # Sidebar
-    render_sidebar()
-
     # Contenido principal: Menú de navegación en el sidebar
     st.sidebar.markdown("---")
     st.sidebar.header("🧭 Navegación")
@@ -59,6 +56,9 @@ def main():
     ]
     
     selection = st.sidebar.radio("Ir a la sección:", page_options)
+    
+    # Sidebar components (idioma e info) se renderizan debajo de la navegación
+    render_sidebar()
     
     # Enrutamiento de páginas
     if selection == page_options[0]:
