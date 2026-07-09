@@ -26,8 +26,8 @@ CUSTOM_CSS = """
 
     /* Global */
     .main .block-container {
-        padding: 2rem 1rem;
-        max-width: 900px;
+        padding: 2rem 3rem;
+        max-width: 1400px; /* Ampliado para aprovechar mejor las pantallas grandes */
     }
     
     h1, h2, h3, h4, h5, h6 {
@@ -157,7 +157,7 @@ def setup_page():
     st.set_page_config(
         page_title="VineGuard AI",
         page_icon="🍇",
-        layout="centered",
+        layout="wide",
         initial_sidebar_state="expanded"
     )
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -176,3 +176,6 @@ def init_session_state():
         st.session_state.statistical_analysis = None
         st.session_state.mcnemar_validation = None
         st.session_state.mcnemar_analysis = None
+        
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False

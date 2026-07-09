@@ -25,14 +25,21 @@ from src.ui.components import render_sidebar
 from src.locales.i18n import t
 
 # Tabs
-from src.ui.tabs import tab_diagnosis, tab_statistics, tab_mcnemar, tab_info
+from src.ui.tabs import (
+    tab_dashboard, 
+    tab_training, 
+    tab_diagnosis, 
+    tab_statistics, 
+    tab_mcnemar, 
+    tab_reports
+)
 
 
 def main():
     """Función principal: renderiza la aplicación completa."""
+    
     # Encabezado principal
     st.title(f"🍇 {t('app_title')}")
-    st.markdown(f"**{t('app_subtitle')}**")
     st.markdown(f"*{t('app_description')}*")
 
     # Sidebar
@@ -43,25 +50,35 @@ def main():
         st.warning(f"👈 {t('sidebar.load_models_warning')}")
         return
 
-    # Pestañas principales
-    tab1, tab2, tab3, tab4 = st.tabs([
-        f"🔍 {t('tabs.diagnosis')}",
-        f"📊 {t('tabs.statistical')}",
-        f"🔬 {t('tabs.mcnemar')}",
-        f"📚 {t('tabs.info')}"
-    ])
+    # Pestañas principales (Ordenadas según la rúbrica)
+    tab_names = [
+        "📈 1. EDA & Dashboard",
+        "⚙️ 2. Entrenamiento",
+        "🔍 3. Inferencia",
+        "📊 4. Estadísticas",
+        "🔬 5. Pruebas (McNemar)",
+        "📄 6. Reportes"
+    ]
+    
+    tabs = st.tabs(tab_names)
 
-    with tab1:
+    with tabs[0]:
+        tab_dashboard.render()
+
+    with tabs[1]:
+        tab_training.render()
+
+    with tabs[2]:
         tab_diagnosis.render()
 
-    with tab2:
+    with tabs[3]:
         tab_statistics.render()
 
-    with tab3:
+    with tabs[4]:
         tab_mcnemar.render()
 
-    with tab4:
-        tab_info.render()
+    with tabs[5]:
+        tab_reports.render()
 
 
 if __name__ == "__main__":
