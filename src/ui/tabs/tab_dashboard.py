@@ -43,7 +43,7 @@ def load_dataset_stats(dataset_path):
     }
 
 def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
-    """Lógica de limpieza ejecutada desde la UI con feedback en tiempo real."""
+    """Lógica de limpieza ejecutada desde la UI con feedback descriptivo e interactivo."""
     input_path = Path(input_dir)
     output_path = Path(output_dir)
     
@@ -51,7 +51,7 @@ def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
     
     classes = [d for d in os.listdir(input_path) if os.path.isdir(input_path / d)]
     if not classes:
-        st.error("No se encontraron clases en el directorio.")
+        st.error("No se encontraron clases en el directorio original.")
         return
         
     stats = {"procesadas": 0, "corruptas": 0, "duplicadas": 0, "exportadas": 0}
@@ -64,68 +64,82 @@ def clean_dataset_ui(input_dir, output_dir, target_size=(224, 224)):
         st.error("No hay imágenes válidas para limpiar.")
         return
 
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    
-    for class_name in classes:
-        class_input_dir = input_path / class_name
-        class_output_dir = output_path / class_name
-        class_output_dir.mkdir(parents=True, exist_ok=True)
+    # Usar st.status para un panel interactivo que muestra los pasos
+    with st.status("🛠️ Ejecutando Pipeline de Limpieza...", expanded=True) as status_panel:
+        st.write(f"Iniciando escaneo en: `{input_dir}`")
+        st.write(f"Se detectaron {total_files} imágenes repartidas en {len(classes)} clases.")
         
-        images = [f for f in os.listdir(class_input_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
+        progress_bar = st.progress(0)
         
-        for img_name in images:
-            stats["procesadas"] += 1
-            img_path = class_input_dir / img_name
+        for class_name in classes:
+            st.write(f"🔍 **Analizando clase:** `{class_name}`...")
+            class_input_dir = input_path / class_name
+            class_output_dir = output_path / class_name
+            class_output_dir.mkdir(parents=True, exist_ok=True)
             
-            # Actualizar UI cada 50 imágenes para no trabar Streamlit
-            if stats["procesadas"] % 50 == 0:
-                progress_bar.progress(stats["procesadas"] / total_files)
-                status_text.markdown(f"⏳ Limpiando `{class_name}`... ({stats['procesadas']}/{total_files})")
+            images = [f for f in os.listdir(class_input_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
             
-            # 1. Filtro de integridad
-            if os.path.getsize(img_path) == 0:
-                stats["corruptas"] += 1
-                continue
+            for img_name in images:
+                stats["procesadas"] += 1
+                img_path = class_input_dir / img_name
                 
-            # 2. Duplicados
-            img_hash = get_image_hash(img_path)
-            if img_hash in seen_hashes:
-                stats["duplicadas"] += 1
-                continue
+                # Actualizar progreso
+                if stats["procesadas"] % 20 == 0 or stats["procesadas"] == total_files:
+                    progress_bar.progress(stats["procesadas"] / total_files)
                 
-            # 3. Calidad y Resize
-            try:
-                with Image.open(img_path) as img:
-                    img.verify()
-                
-                with Image.open(img_path) as img:
-                    if img.mode != 'RGB':
-                        img = img.convert('RGB')
-                    img_resized = img.resize(target_size, Image.Resampling.LANCZOS)
+                # 1. Filtro de integridad (0 KB)
+                if os.path.getsize(img_path) == 0:
+                    stats["corruptas"] += 1
+                    continue
                     
-                    new_name = f"{img_hash[:8]}_{img_name}"
-                    if not new_name.lower().endswith('.jpg'):
-                        new_name = new_name.rsplit('.', 1)[0] + '.jpg'
+                # 2. Duplicados (Hash MD5)
+                img_hash = get_image_hash(img_path)
+                if img_hash in seen_hashes:
+                    stats["duplicadas"] += 1
+                    continue
+                    
+                # 3. Calidad y Resize
+                try:
+                    with Image.open(img_path) as img:
+                        img.verify() # Comprobar que no esté rota a nivel binario
+                    
+                    with Image.open(img_path) as img:
+                        if img.mode != 'RGB':
+                            img = img.convert('RGB')
                         
-                    export_path = class_output_dir / new_name
-                    img_resized.save(export_path, 'JPEG', quality=95)
+                        img_resized = img.resize(target_size, Image.Resampling.LANCZOS)
+                        
+                        new_name = f"{img_hash[:8]}_{img_name}"
+                        if not new_name.lower().endswith('.jpg'):
+                            new_name = new_name.rsplit('.', 1)[0] + '.jpg'
+                            
+                        export_path = class_output_dir / new_name
+                        img_resized.save(export_path, 'JPEG', quality=95)
+                        
+                        seen_hashes.add(img_hash)
+                        stats["exportadas"] += 1
+                except Exception:
+                    stats["corruptas"] += 1
+                    continue
                     
-                    seen_hashes.add(img_hash)
-                    stats["exportadas"] += 1
-            except Exception:
-                stats["corruptas"] += 1
-                continue
+        status_panel.update(label="✅ Limpieza Finalizada", state="complete", expanded=False)
 
-    progress_bar.progress(1.0)
-    status_text.empty()
+    # Reporte Final super legible
+    st.markdown("### 📋 Reporte de Curación de Datos")
     
-    st.success(f"✅ ¡Limpieza Finalizada! Las imágenes limpias se guardaron en: `{output_dir}`")
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Exportadas (Sanas)", stats["exportadas"])
-    col2.metric("Duplicadas Eliminadas", stats["duplicadas"])
-    col3.metric("Corruptas Eliminadas", stats["corruptas"])
+    st.markdown(f"""
+    <div class="tech-box" style="border-left: 5px solid #415D48;">
+        <h4>Resumen de Ejecución</h4>
+        <p>El pipeline finalizó el análisis estructural y criptográfico del dataset. A continuación se detallan los resultados:</p>
+        <ul>
+            <li><strong>Imágenes Totales Escaneadas:</strong> {stats['procesadas']:,}</li>
+            <li><strong style="color: #8C4545;">⚠️ Duplicados Eliminados:</strong> {stats['duplicadas']:,} <em>(Detectados vía Hash MD5)</em></li>
+            <li><strong style="color: #8C4545;">❌ Archivos Corruptos/Rotos:</strong> {stats['corruptas']:,} <em>(0 KB o falla binaria)</em></li>
+            <li><strong style="color: #415D48;">✅ Imágenes Limpias y Normalizadas:</strong> {stats['exportadas']:,} <em>(Exportadas a 224x224 px)</em></li>
+        </ul>
+        <p><strong>Destino:</strong> <code>{output_dir}</code></p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render():
