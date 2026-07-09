@@ -173,7 +173,8 @@ def render():
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, txt="3. Dictamen y Conclusiones", ln=True)
         pdf.set_font("Arial", '', 10)
-        clean_interp = interpretation.replace('**', '').replace('•', '-')
+        # Limpiar caracteres UTF-8 no soportados por fpdf nativo
+        clean_interp = interpretation.replace('**', '').replace('•', '-').replace('≥', '>=')
         pdf.multi_cell(0, 7, txt=clean_interp)
         
         pdf_data = pdf.output(dest='S').encode('latin1')
