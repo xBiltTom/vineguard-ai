@@ -11,13 +11,54 @@ from datetime import datetime
 
 from src.locales.i18n import t
 from src.core.inference import predict_disease, get_disease_name, get_treatment_recommendations
-from src.utils.config import DISEASE_CLASSES
+from src.utils.config import DISEASE_CLASSES, MODEL_PATHS
 from src.utils.pdf_generator import generate_diagnosis_pdf
-
+from src.core.model_manager import load_single_model
 
 def render():
     """Renderiza la pestaña de Diagnóstico Individual."""
     st.header(f"🔍 {t('diagnosis.title')}")
+    
+    # ======= GESTIÓN DE MODELOS (Carga Bajo Demanda) =======
+    if not st.session_state.get('models_loaded', False):
+        st.warning("⚠️ Para realizar diagnósticos, primero debes cargar los modelos entrenados en memoria.")
+        
+        # Permitir cargar desde carpeta por defecto (models/)
+        if st.button("🚀 Cargar Modelos desde directorio local", type="primary"):
+            model_names = list(MODEL_PATHS.keys())
+            total = len(model_names)
+            loaded = {}
+            errors = []
+
+            st.markdown("**Cargando modelos en memoria...**")
+            progress_bar = st.progress(0)
+            status_text  = st.empty()
+
+            for i, name in enumerate(model_names):
+                status_text.markdown(f"⏳ `{name}` ({i+1}/{total})")
+                model = load_single_model(name)
+                if model is not None:
+                    loaded[name] = model
+                else:
+                    errors.append(name)
+                progress_bar.progress((i + 1) / total)
+
+            status_text.empty()
+
+            if loaded:
+                st.session_state.models = loaded
+                st.session_state.models_loaded = True
+                st.success(f"✅ {len(loaded)}/{total} modelos cargados exitosamente.")
+                st.rerun()
+            else:
+                st.error("❌ No se pudo cargar ningún modelo.")
+        
+        st.markdown("---")
+        return  # Detiene el renderizado hasta que los modelos estén cargados
+    else:
+        st.success("✅ Modelos cargados y listos para inferencia.")
+        
+    st.markdown("---")
 
     # Opciones de entrada
     col1, col2 = st.columns([2, 1])

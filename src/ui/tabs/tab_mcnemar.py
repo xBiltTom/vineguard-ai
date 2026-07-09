@@ -58,7 +58,8 @@ def render():
     st.header(f"🔬 {t('mcnemar.title')}")
 
     if not st.session_state.models_loaded:
-        st.warning(f"👈 {t('sidebar.load_models_warning')}")
+        st.warning("⚠️ Debes cargar los modelos en memoria antes de realizar validaciones estadísticas.")
+        st.info("👉 Ve a la sección **3. Inferencia** en el menú lateral para cargar los modelos.")
     else:
         # ====== TEORÍA AL INICIO ======
         st.markdown(f"### 📚 {t('mcnemar.theoretical_foundations')}")

@@ -45,13 +45,11 @@ def main():
     # Sidebar
     render_sidebar()
 
-    # Contenido principal: guardia si no hay modelos cargados
-    if not st.session_state.models_loaded:
-        st.warning(f"👈 {t('sidebar.load_models_warning')}")
-        return
-
-    # Pestañas principales (Ordenadas según la rúbrica)
-    tab_names = [
+    # Contenido principal: Menú de navegación en el sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.header("🧭 Navegación")
+    
+    page_options = [
         "📈 1. EDA & Dashboard",
         "⚙️ 2. Entrenamiento",
         "🔍 3. Inferencia",
@@ -60,24 +58,20 @@ def main():
         "📄 6. Reportes"
     ]
     
-    tabs = st.tabs(tab_names)
-
-    with tabs[0]:
+    selection = st.sidebar.radio("Ir a la sección:", page_options)
+    
+    # Enrutamiento de páginas
+    if selection == page_options[0]:
         tab_dashboard.render()
-
-    with tabs[1]:
+    elif selection == page_options[1]:
         tab_training.render()
-
-    with tabs[2]:
+    elif selection == page_options[2]:
         tab_diagnosis.render()
-
-    with tabs[3]:
+    elif selection == page_options[3]:
         tab_statistics.render()
-
-    with tabs[4]:
+    elif selection == page_options[4]:
         tab_mcnemar.render()
-
-    with tabs[5]:
+    elif selection == page_options[5]:
         tab_reports.render()
 
 
