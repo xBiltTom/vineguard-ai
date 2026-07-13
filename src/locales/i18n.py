@@ -144,59 +144,65 @@ Valores cercanos a +1 indican predicción perfecta, 0 indica predicción aleator
                 'title': '🔴 Podredumbre Negra Detectada',
                 'severity': 'Alta',
                 'treatment': [
-                    'Aplicar fungicidas protectores (Mancozeb, Captan)',
-                    'Eliminar y destruir todas las partes infectadas',
-                    'Mejorar la circulación de aire en el viñedo',
-                    'Evitar el riego por aspersión'
+                    'Aplicar fungicidas sistémicos específicos (como Miclobutanil o Tebuconazol) de inmediato.',
+                    'Realizar el retiro manual y quema de "bayas momificadas" ya que son la principal fuente de inóculo.',
+                    'Aplicar fungicidas de contacto (Mancozeb o Captan) en las áreas no afectadas.',
+                    'Reducir la cobertura vegetal alrededor de los racimos para bajar la humedad relativa.',
+                    'Detener cualquier sistema de riego por aspersión temporalmente.'
                 ],
                 'prevention': [
-                    'Podar adecuadamente para mejorar ventilación',
-                    'Aplicar fungicidas preventivos antes de la floración',
-                    'Eliminar restos de poda y hojas caídas'
+                    'Implementar deshoje temprano (Canopy Management) para maximizar la circulación del aire y penetración de luz.',
+                    'Aplicar fungicidas preventivos desde la etapa de brotación hasta 4 semanas después de la floración.',
+                    'Realizar control estricto de malezas debajo de las vides para reducir la humedad estancada.',
+                    'Retirar y destruir todos los restos de poda y zarcillos infectados durante el invierno.'
                 ]
             },
             'Esca': {
                 'title': '🟤 Esca (Sarampión Negro) Detectada',
                 'severity': 'Muy Alta',
                 'treatment': [
-                    'No existe cura directa - enfoque en prevención',
-                    'Podar las partes afectadas con herramientas desinfectadas',
-                    'Aplicar pasta cicatrizante en cortes de poda',
-                    'Considerar reemplazo de plantas severamente afectadas'
+                    'No existe cura química erradicante aprobada (el Arsenito de Sodio está prohibido).',
+                    'Realizar "Cirugía del Tronco" (Curetaggio) para raspar y remover la madera esponjosa infectada hasta llegar a madera sana.',
+                    'Si la planta está muy comprometida, cortarla por debajo de la zona necrosada y volver a formarla desde un chupón.',
+                    'Marcar las cepas enfermas en verano para tratarlas por separado durante la poda de invierno.',
+                    'Arrancar e incinerar cepas muertas o irrecuperables.'
                 ],
                 'prevention': [
-                    'Evitar podas tardías y en días húmedos',
-                    'Desinfectar herramientas entre plantas',
-                    'Proteger heridas de poda inmediatamente'
+                    'Retrasar la poda lo máximo posible (poda tardía) cuando las esporas de los hongos son menos activas.',
+                    'Aplicar selladores biológicos (como Trichoderma spp. o Bacillus subtilis) o pastas cicatrizantes químicas en cortes de poda grandes.',
+                    'Desinfectar tijeras y serruchos con alcohol al 70% entre planta y planta.',
+                    'Evitar podar durante o inmediatamente después de días lluviosos.'
                 ]
             },
             'Healthy': {
                 'title': '✅ Planta Sana',
                 'severity': 'Ninguna',
                 'treatment': [
-                    'No se requiere tratamiento',
-                    'Mantener las prácticas actuales de manejo'
+                    'El tejido foliar no presenta patrones detectables de patógenos.',
+                    'No se requiere ninguna intervención correctiva en este momento.',
+                    'Continuar con el esquema de fertilización planificado.'
                 ],
                 'prevention': [
-                    'Continuar monitoreo regular',
-                    'Mantener programa preventivo de fungicidas',
-                    'Asegurar nutrición balanceada',
-                    'Mantener buen drenaje del suelo'
+                    'Mantener el monitoreo visual quincenal del viñedo, especialmente tras lluvias.',
+                    'Continuar con el programa base de fungicidas preventivos (azufre o cobre) según el calendario fenológico.',
+                    'Mantener el control de estrés hídrico y asegurar un drenaje óptimo.',
+                    'Garantizar niveles adecuados de potasio y magnesio para fortalecer las paredes celulares.'
                 ]
             },
             'Leaf_blight': {
                 'title': '🟡 Tizón de la Hoja Detectado',
                 'severity': 'Moderada',
                 'treatment': [
-                    'Aplicar fungicidas sistémicos (Azoxistrobina, Tebuconazol)',
-                    'Remover hojas infectadas',
-                    'Mejorar el drenaje del suelo',
-                    'Reducir la densidad del follaje'
+                    'Aplicar fungicidas a base de cobre (Caldo Bordelés) o sistémicos (Difenoconazol, Azoxistrobina).',
+                    'Retirar manualmente las hojas severamente manchadas para detener la esporulación.',
+                    'Detener la fertilización rica en nitrógeno, ya que el crecimiento foliar excesivo favorece al hongo.',
+                    'Mejorar el drenaje del suelo de inmediato si hay encharcamiento.'
                 ],
                 'prevention': [
-                    'Evitar el exceso de nitrógeno',
-                    'Mantener el follaje seco',
-                    'Aplicar fungicidas preventivos en épocas húmedas'
+                    'Evitar la sobre-fertilización nitrogenada a principios de temporada.',
+                    'Realizar poda en verde para evitar un microclima excesivamente húmedo en el interior de la planta.',
+                    'Destruir la hojarasca caída en otoño, ya que el hongo Isariopsis sobrevive el invierno en los restos.',
+                    'Utilizar mallas antihierba para evitar salpicaduras del suelo a las hojas basales durante lluvias.'
                 ]
             }
         },
