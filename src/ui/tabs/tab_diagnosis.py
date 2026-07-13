@@ -103,18 +103,26 @@ def render():
                 # Mostrar resultados por modelo
                 st.subheader(f"📋 {t('diagnosis.results_title')}")
 
-                # Crear columnas para cada modelo
-                cols = st.columns(len(st.session_state.predictions))
-
-                for i, result in enumerate(st.session_state.predictions):
-                    with cols[i]:
-                        # Métrica principal
-                        st.metric(
-                            label=result['model_name'],
-                            value=result['predicted_class_es'],
-                            delta=f"{result['confidence']:.1%} {t('diagnosis.confidence').lower()}"
-                        )
-                        st.caption(f"⏱️ {result['inference_time']:.1f} ms")
+                # Crear columnas para cada modelo (Cuadrícula de 3 por fila para evitar cortes)
+                num_models = len(st.session_state.predictions)
+                cols_per_row = 3
+                
+                for i in range(0, num_models, cols_per_row):
+                    cols = st.columns(cols_per_row)
+                    for j in range(cols_per_row):
+                        if i + j < num_models:
+                            result = st.session_state.predictions[i + j]
+                            with cols[j]:
+                                # Tarjeta personalizada para permitir salto de línea
+                                st.markdown(f"""
+                                <div style="background-color: var(--secondary-background-color); border: 1px solid rgba(128,128,128,0.2); border-radius: 5px; padding: 15px; margin-bottom: 15px; min-height: 110px;">
+                                    <p style="font-size: 0.75rem; opacity: 0.7; margin: 0; text-transform: uppercase; letter-spacing: 0.05em;">{result['model_name']}</p>
+                                    <p style="font-size: 1.15rem; font-weight: bold; margin: 5px 0; font-family: 'Lora', serif; line-height: 1.2;">{result['predicted_class_es']}</p>
+                                    <p style="font-size: 0.85rem; margin: 0; font-weight: 500; color: {'#415D48' if result['confidence'] > 0.85 else '#C49A45'};">
+                                        ▲ {result['confidence']:.1%} conf. | ⏱️ {result['inference_time']:.0f} ms
+                                    </p>
+                                </div>
+                                """, unsafe_allow_html=True)
 
                 # Consenso de modelos
                 st.subheader(f"🤝 {t('diagnosis.consensus_title')}")
