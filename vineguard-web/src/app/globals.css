@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Precision Agriculture Hardware Design Tokens */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* LIGHT MODE (Limestone theme) */
+  --background: #F7F6F0;
+  --foreground: #1E2320;
+  --card-bg: #FFFFFF;
+  --border-color: #E2E0D5;
+  --accent: #88A825; /* Grape Leaf Green */
+  --accent-hover: #73901E;
+  --danger: #C84C32; /* Rust/Terracotta for diseases */
+  --grid-color: rgba(30, 35, 32, 0.05);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  /* DARK MODE (Deep Soil theme - Precision Hardware) */
+  --background: #121513; /* Matte Charcoal */
+  --foreground: #E8EBE9;
+  --card-bg: #1C1E1D;
+  --border-color: #2D3330;
+  --accent: #C4FF00; /* Neon Agronomic Green */
+  --accent-hover: #A3D600;
+  --danger: #FF6B4A; /* Bright Rust for high visibility */
+  --grid-color: rgba(196, 255, 0, 0.03);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    background-image: 
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Scanner Animation Signature Effect */
+@keyframes laser-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scanner-laser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent);
+  box-shadow: 0 0 15px 2px var(--accent);
+  animation: laser-scan 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  z-index: 10;
 }
