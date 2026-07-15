@@ -364,6 +364,42 @@ def render():
                             # ====== INTERPRETACIÓN PARA EL PROFESOR ======
                             interpretation = generate_interpretation_for_professor(mcnemar_analysis, validation_data)
 
+                            # ==========================================
+                            # BOTÓN DE EXPORTACIÓN A PRODUCCIÓN (NUEVO)
+                            # ==========================================
+                            st.markdown("---")
+                            st.subheader("🚀 Despliegue Comercial")
+                            best_model_name = best_model
+                            st.info(f"El modelo estadísticamente superior es **{best_model_name}**. Este es el modelo recomendado para ser desplegado en el Backend (FastAPI) para que el Frontend Comercial (Next.js) lo consuma.")
+                            
+                            if st.button("🏆 Exportar Modelo Ganador a Producción", type="primary", use_container_width=True):
+                                import shutil
+                                import os
+                                from pathlib import Path
+                                
+                                with st.spinner(f"Copiando {best_model_name}.h5 a la capa de Producción..."):
+                                    # Rutas
+                                    admin_models_dir = Path("models")
+                                    api_models_dir = Path("../vineguard-api/best_model")
+                                    
+                                    source_model = admin_models_dir / f"{best_model_name}.h5"
+                                    target_model = api_models_dir / "production_model.h5"
+                                    
+                                    if source_model.exists():
+                                        api_models_dir.mkdir(parents=True, exist_ok=True)
+                                        try:
+                                            shutil.copy2(source_model, target_model)
+                                            st.success(f"✅ ¡Éxito! El modelo **{best_model_name}** ha sido copiado a `vineguard-api/best_model/production_model.h5` y está listo para ser servido por FastAPI.")
+                                            st.balloons()
+                                        except Exception as e:
+                                            st.error(f"Error al copiar el archivo: {str(e)}")
+                                    else:
+                                        st.error(f"❌ No se encontró el archivo físico del modelo en: {source_model}")
+                                        
+                            st.markdown("---")
+                            
+                            # Reporte PDF
+                            st.subheader("📄 Reporte Estadístico Formal")
                             st.markdown(f"""
                             <div class="tech-box">
                             <h4>🎓 {t('mcnemar.academic_interpretation')}</h4>
