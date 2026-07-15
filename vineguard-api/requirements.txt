@@ -5,3 +5,5 @@ tf-keras>=2.16.0
 pillow>=10.0.1
 numpy>=1.26.0
 python-multipart>=0.0.6
+litellm>=1.20.0
+python-dotenv>=1.0.0

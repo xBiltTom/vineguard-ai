@@ -1,10 +1,11 @@
 import ThemeToggle from "@/components/ThemeToggle";
 import ScannerDashboard from "@/components/ScannerDashboard";
+import ChatbotWidget from "@/components/ChatbotWidget";
 import { ScanLine } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12">
+    <main className="max-w-5xl mx-auto px-6 py-12 relative">
       {/* Header */}
       <header className="flex justify-between items-center mb-12 border-b border-[var(--border-color)] pb-6">
         <div>
@@ -26,6 +27,9 @@ export default function Home() {
 
       {/* Main Content Dashboard */}
       <ScannerDashboard />
+
+      {/* Chatbot Voice & Text Assistant */}
+      <ChatbotWidget />
     </main>
   );
 }
