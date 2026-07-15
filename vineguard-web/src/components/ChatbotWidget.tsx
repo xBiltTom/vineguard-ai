@@ -1,17 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Mic, MicOff, Bot, User } from "lucide-react";
+import { MessageSquare, X, Send, Mic, MicOff, Bot, User, Loader2 } from "lucide-react";
 
 interface ChatMessage {
   role: "user" | "bot";
   content: string;
-}
-
-// Interfaz para la API nativa de voz
-interface Window {
-  SpeechRecognition: any;
-  webkitSpeechRecognition: any;
 }
 
 export default function ChatbotWidget() {
@@ -22,53 +16,78 @@ export default function ChatbotWidget() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-  // Auto-scroll al último mensaje
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Inicializar Voice-to-Text
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.lang = "es-ES";
-        
-        recognitionRef.current.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setInputText(transcript);
-          setIsListening(false);
+  const toggleListen = async () => {
+    if (isListening) {
+      // Detener grabación
+      mediaRecorderRef.current?.stop();
+      setIsListening(false);
+      mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+    } else {
+      // Iniciar grabación
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            audioChunksRef.current.push(e.data);
+          }
         };
-        
-        recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech recognition error", event.error);
-          setIsListening(false);
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          await handleAudioTranscription(audioBlob);
         };
-        
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
+
+        mediaRecorder.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+        setMessages(prev => [...prev, { 
+          role: "bot", 
+          content: "Error: No pude acceder al micrófono. Por favor verifica los permisos del navegador." 
+        }]);
       }
     }
-  }, []);
+  };
 
-  const toggleListen = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      try {
-        recognitionRef.current?.start();
-        setIsListening(true);
-      } catch (e) {
-        console.error(e);
+  const handleAudioTranscription = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "audio.webm");
+
+    try {
+      const response = await fetch("http://localhost:8000/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Transcription failed");
+      
+      const data = await response.json();
+      if (data.text) {
+        setInputText(data.text);
       }
+    } catch (error) {
+      setMessages(prev => [...prev, { 
+        role: "bot", 
+        content: "Error: No se pudo transcribir el audio. Verifica tu API Key o conexión al servidor." 
+      }]);
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
@@ -78,7 +97,6 @@ export default function ChatbotWidget() {
     const userMessage = inputText.trim();
     setInputText("");
     
-    // Add user message to UI
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
@@ -94,7 +112,7 @@ export default function ChatbotWidget() {
       const data = await response.json();
       setMessages(prev => [...prev, { role: "bot", content: data.response }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: "bot", content: "Error de conexión. ¿FastAPI está encendido y el .env configurado?" }]);
+      setMessages(prev => [...prev, { role: "bot", content: "Error de conexión con FastAPI." }]);
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +127,6 @@ export default function ChatbotWidget() {
 
   return (
     <>
-      {/* Floating Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -119,11 +136,9 @@ export default function ChatbotWidget() {
         </button>
       )}
 
-      {/* Chat Window */}
       {isOpen && (
         <div className="fixed bottom-8 right-8 w-[350px] sm:w-[400px] h-[500px] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden">
           
-          {/* Header */}
           <div className="bg-[#121513] px-4 py-3 flex justify-between items-center border-b border-[var(--border-color)]">
             <div className="flex items-center gap-2 text-white">
               <Bot className="w-5 h-5 text-[var(--accent)]" />
@@ -134,7 +149,6 @@ export default function ChatbotWidget() {
             </button>
           </div>
 
-          {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--background)]">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -165,29 +179,36 @@ export default function ChatbotWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="p-3 border-t border-[var(--border-color)] bg-[var(--card-bg)] flex items-center gap-2">
             
             <button 
               onClick={toggleListen}
-              className={`p-2 rounded-full transition-colors ${isListening ? 'bg-red-500/20 text-red-500' : 'bg-[var(--background)] text-gray-400 hover:text-[var(--accent)]'}`}
+              disabled={isTranscribing}
+              className={`p-2 rounded-full transition-colors relative ${isListening ? 'bg-red-500/20 text-red-500' : 'bg-[var(--background)] text-gray-400 hover:text-[var(--accent)]'}`}
               title="Dictado por voz"
             >
-              {isListening ? <Mic className="w-5 h-5 animate-pulse" /> : <MicOff className="w-5 h-5" />}
+              {isTranscribing ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isListening ? (
+                <Mic className="w-5 h-5 animate-pulse" />
+              ) : (
+                <MicOff className="w-5 h-5" />
+              )}
             </button>
 
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu consulta..."
-              className="flex-1 max-h-20 min-h-[40px] p-2 text-sm bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--accent)] resize-none"
+              placeholder={isTranscribing ? "Transcribiendo con Groq Whisper..." : "Escribe tu consulta..."}
+              disabled={isTranscribing}
+              className="flex-1 max-h-20 min-h-[40px] p-2 text-sm bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--accent)] resize-none disabled:opacity-50"
               rows={1}
             />
 
             <button 
               onClick={sendMessage}
-              disabled={!inputText.trim() || isLoading}
+              disabled={!inputText.trim() || isLoading || isTranscribing}
               className="p-2 bg-[var(--accent)] text-[#121513] rounded-full disabled:opacity-50 transition-colors"
             >
               <Send className="w-5 h-5" />

@@ -85,5 +85,19 @@ async def chat_bot(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/transcribe")
+async def transcribe_voice(audio: UploadFile = File(...)):
+    """
+    Recibe un archivo de audio del frontend y lo transcribe usando Groq Whisper.
+    Esta es la alternativa profesional a la Web Speech API que falla en Linux.
+    """
+    from src.chatbot_logic import transcribe_audio
+    try:
+        contents = await audio.read()
+        texto = transcribe_audio(contents)
+        return {"text": texto}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
