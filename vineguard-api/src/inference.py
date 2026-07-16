@@ -27,6 +27,16 @@ def load_production_model():
         
     try:
         print(f"Cargando modelo de producción: {model_path}")
+        # Patch de compatibilidad: Keras 3.6+ guarda 'quantization_config' en la capa Dense,
+        # pero Keras 3.5.0 (en Render) no lo reconoce. Lo eliminamos antes de deserializar.
+        from tensorflow.keras import layers as _kl
+        _orig_dense_cfg = _kl.Dense.from_config
+        @classmethod
+        def _patched_dense_from_config(cls, config):
+            config.pop('quantization_config', None)
+            return _orig_dense_cfg.__func__(cls, config)
+        _kl.Dense.from_config = _patched_dense_from_config
+        
         # Custom objects por si se exportó un modelo Híbrido con Capa de Atención
         from tensorflow.keras.layers import Layer
         import tensorflow.keras.backend as K
