@@ -152,14 +152,14 @@ export default function ChatbotWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-[var(--accent)] text-[#121513] rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-50 focus:outline-none"
+          className="fixed bottom-8 right-8 w-14 h-14 bg-[var(--accent)] text-[#121513] rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-50 focus:outline-none print:hidden"
         >
           <MessageSquare className="w-6 h-6" />
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed bottom-8 right-8 w-[350px] sm:w-[400px] h-[500px] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden">
+        <div className="fixed bottom-8 right-8 w-[350px] sm:w-[400px] h-[500px] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden print:hidden">
           
           <div className="bg-[#121513] px-4 py-3 flex justify-between items-center border-b border-[var(--border-color)]">
             <div className="flex items-center gap-2 text-white">

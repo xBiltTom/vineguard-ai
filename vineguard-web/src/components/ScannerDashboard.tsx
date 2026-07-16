@@ -113,7 +113,7 @@ export default function ScannerDashboard() {
       <div className={`grid grid-cols-1 ${scanResult ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-8 transition-all duration-700 ease-in-out`}>
         
         {/* Zona Izquierda: Carga de Imagen */}
-        <div className={`${scanResult ? 'lg:col-span-1' : 'lg:col-span-2'} flex flex-col gap-6 transition-all duration-700`}>
+        <div className={`${scanResult ? 'lg:col-span-1 print:hidden' : 'lg:col-span-2'} flex flex-col gap-6 transition-all duration-700`}>
           <div 
             className={`bg-[var(--card-bg)] border ${error ? 'border-red-500' : 'border-[var(--border-color)]'} rounded-xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden group cursor-pointer hover:border-[var(--accent)] transition-colors`}
             onClick={() => !isScanning && fileInputRef.current?.click()}
@@ -173,7 +173,7 @@ export default function ScannerDashboard() {
         </div>
 
         {/* Zona Derecha: Estado / Tarjeta Principal (Arriba) */}
-        <div className={`flex flex-col gap-6 ${!scanResult && !isScanning ? 'lg:col-span-1' : 'lg:col-span-1'} transition-all duration-700`}>
+        <div className={`flex flex-col gap-6 ${!scanResult && !isScanning ? 'lg:col-span-1' : 'lg:col-span-1 print:lg:col-span-2'} transition-all duration-700`}>
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-8 shadow-sm flex flex-col h-full relative overflow-hidden">
             {/* Efecto de fondo */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[var(--accent)] to-transparent opacity-5 rounded-full blur-3xl"></div>
@@ -345,7 +345,7 @@ export default function ScannerDashboard() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 print:hidden">
               <button 
                 onClick={() => window.print()}
                 className="w-full border border-[var(--border-color)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black text-[var(--foreground)] p-4 rounded-lg text-xs font-bold tracking-widest uppercase transition-all flex justify-center items-center gap-2 group"

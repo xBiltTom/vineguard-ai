@@ -59,3 +59,25 @@
   animation: laser-scan 2s ease-in-out infinite;
   z-index: 30;
 }
+
+/* Print Styles: Force background colors to print and clean up background grid */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Forzar modo claro para impresión (ahorro de tinta y legibilidad) */
+  :root, .dark {
+    --background: #FFFFFF !important;
+    --foreground: #000000 !important;
+    --card-bg: #FFFFFF !important;
+    --border-color: #DDDDDD !important;
+  }
+
+  body {
+    background-image: none !important;
+    background-color: white !important;
+    color: black !important;
+  }
+}

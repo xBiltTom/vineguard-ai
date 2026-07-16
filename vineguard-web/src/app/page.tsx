@@ -22,7 +22,7 @@ export default function Home() {
             {t("header_subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 print:hidden">
           <button 
             onClick={toggleLanguage}
             className="text-xs font-mono border border-[var(--border-color)] px-3 py-1.5 rounded bg-[var(--card-bg)] hover:border-[var(--accent)] transition-colors"
