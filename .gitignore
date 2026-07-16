@@ -26,6 +26,8 @@ __pycache__/
 models/
 saved_models/
 model_data/
+!best_model.keras
+
 
 # Dataset directories
 dataset/
