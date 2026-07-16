@@ -2,8 +2,10 @@
 
 import { useState, useRef } from "react";
 import { ScanLine, UploadCloud, AlertTriangle, CheckCircle, Bug } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ScannerDashboard() {
+  const { t, language } = useLanguage();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -18,7 +20,7 @@ export default function ScannerDashboard() {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        setError("Please upload a valid image file.");
+        setError(language === "es" ? "Sube un archivo de imagen válido." : "Please upload a valid image file.");
         return;
       }
       setImageFile(file);
@@ -41,7 +43,7 @@ export default function ScannerDashboard() {
       setScanResult(null);
       setError(null);
     } else {
-      setError("Please drop a valid image file.");
+      setError(language === "es" ? "Por favor suelta un archivo de imagen válido." : "Please drop a valid image file.");
     }
   };
 
@@ -56,7 +58,6 @@ export default function ScannerDashboard() {
     formData.append("image", imageFile);
 
     try {
-      // Forzamos un mínimo de 1.5 segundos para apreciar la animación láser
       const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
       
       const apiCall = fetch("http://localhost:8000/api/predict", {
@@ -64,12 +65,11 @@ export default function ScannerDashboard() {
         body: formData,
       });
 
-      // Ejecutamos ambas promesas a la vez
       const [res] = await Promise.all([apiCall, minDelay]);
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Error del servidor API. ¿Está prendido FastAPI?");
+        throw new Error(errorData.detail || (language === "es" ? "Error del servidor API." : "API Server Error."));
       }
 
       const data = await res.json();
@@ -77,21 +77,19 @@ export default function ScannerDashboard() {
       
     } catch (err: unknown) {
       if (err instanceof Error) {
-        // Si dice "Failed to fetch", es que el servidor está apagado
         if (err.message.includes("Failed to fetch")) {
-          setError("Error: No se pudo conectar a FastAPI (Puerto 8000).");
+          setError(t("error_api_conn"));
         } else {
           setError(err.message);
         }
       } else {
-        setError("Ocurrió un error inesperado");
+        setError("Ocurrió un error inesperado / Unexpected error");
       }
     } finally {
       setIsScanning(false);
     }
   };
 
-  // Determinar icono y color según el resultado
   const getResultUI = () => {
     if (!scanResult) return null;
     
@@ -108,7 +106,6 @@ export default function ScannerDashboard() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left Column: Upload / Scanner Area */}
       <div className="lg:col-span-2 flex flex-col gap-6">
         <div 
           className={`bg-[var(--card-bg)] border ${error ? 'border-red-500' : 'border-[var(--border-color)]'} rounded-xl p-8 shadow-sm flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden group cursor-pointer hover:border-[var(--accent)] transition-colors`}
@@ -124,7 +121,6 @@ export default function ScannerDashboard() {
             accept="image/jpeg, image/png, image/jpg" 
           />
           
-          {/* Ambient Glow */}
           {!imagePreview && (
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--accent)] opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
           )}
@@ -137,9 +133,7 @@ export default function ScannerDashboard() {
               {isScanning && (
                 <>
                   <div className="absolute inset-0 bg-black/40 z-20 rounded-lg"></div>
-                  {/* Láser de la firma visual */}
                   <div className="scanner-laser"></div>
-                  {/* Cuadrícula técnica sobre la foto */}
                   <div className="absolute inset-0 z-20 opacity-30" style={{
                     backgroundImage: "linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px)",
                     backgroundSize: "20px 20px"
@@ -150,45 +144,43 @@ export default function ScannerDashboard() {
           ) : (
             <div className="flex flex-col items-center text-center z-10">
               <UploadCloud className="w-12 h-12 mb-4 opacity-50 group-hover:text-[var(--accent)] group-hover:opacity-100 transition-all duration-300" />
-              <h3 className="text-xl font-medium mb-2">Drop leaf sample here</h3>
+              <h3 className="text-xl font-medium mb-2">{t("drop_title")}</h3>
               <p className="text-sm opacity-60 max-w-sm mb-6">
-                Upload a high-resolution image of a grapevine leaf. The AI will scan for Esca, Black Rot, or Leaf Blight.
+                {t("drop_desc")}
               </p>
             </div>
           )}
         </div>
 
-        {/* Action Button */}
         <div className="flex justify-end items-center gap-4">
           {error && <span className="text-red-500 text-sm font-medium">{error}</span>}
           <button 
             disabled={!imageFile || isScanning}
             onClick={(e) => { e.stopPropagation(); startScan(); }}
-            className="bg-[var(--foreground)] text-[var(--background)] px-8 py-3 rounded font-medium text-sm hover:bg-[var(--accent)] hover:text-[#121513] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[var(--foreground)] text-[var(--background)] px-8 py-3 rounded font-medium text-sm hover:bg-[var(--accent)] hover:text-[#121513] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed uppercase"
           >
             <ScanLine className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-            {isScanning ? 'ANALYZING TISSUE...' : 'INITIALIZE SCAN'}
+            {isScanning ? t("btn_scan_loading") : t("btn_scan_init")}
           </button>
         </div>
       </div>
 
-      {/* Right Column: AI Metrics / Terminal area */}
       <div className="flex flex-col gap-6">
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6 shadow-sm h-full flex flex-col">
           <h3 className="text-sm uppercase tracking-widest font-mono opacity-50 mb-6 flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${isScanning ? 'bg-yellow-500 animate-pulse' : (scanResult ? 'bg-[var(--accent)]' : 'bg-gray-500')}`}></span>
-            System Status
+            {t("system_status")}
           </h3>
           
           <div className="flex-1 flex flex-col justify-center items-center text-center border border-dashed border-[var(--border-color)] rounded-lg p-6 bg-[var(--background)]/50">
             {!scanResult && !isScanning && (
-              <p className="font-mono text-xs opacity-40">Awaiting visual input...</p>
+              <p className="font-mono text-xs opacity-40">{t("awaiting_input")}</p>
             )}
             
             {isScanning && (
               <div className="flex flex-col items-center gap-3">
                 <div className="w-8 h-8 border-2 border-t-[var(--accent)] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                <p className="font-mono text-xs text-[var(--accent)] animate-pulse">Computing tensor...</p>
+                <p className="font-mono text-xs text-[var(--accent)] animate-pulse">{t("computing_tensor")}</p>
               </div>
             )}
             
@@ -197,7 +189,7 @@ export default function ScannerDashboard() {
                 {ui.icon}
                 <div>
                   <h2 className={`text-2xl font-bold ${ui.color}`}>{scanResult.predicted_class}</h2>
-                  <p className="text-sm opacity-60 font-mono mt-1">Diagnosis Complete</p>
+                  <p className="text-sm opacity-60 font-mono mt-1">{t("diagnosis_complete")}</p>
                 </div>
               </div>
             )}
@@ -205,17 +197,17 @@ export default function ScannerDashboard() {
           
           <div className="mt-6 pt-6 border-t border-[var(--border-color)]">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-xs opacity-60">Engine</span>
+              <span className="text-xs opacity-60">{t("engine")}</span>
               <span className="text-xs font-mono">VineGuard CNN v2</span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-xs opacity-60">Confidence</span>
+              <span className="text-xs opacity-60">{t("confidence")}</span>
               <span className={`text-xs font-mono ${scanResult ? 'text-[var(--accent)]' : ''}`}>
                 {scanResult ? `${(scanResult.confidence * 100).toFixed(2)}%` : '--'}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xs opacity-60">Latency</span>
+              <span className="text-xs opacity-60">{t("latency")}</span>
               <span className="text-xs font-mono">
                 {scanResult ? `${scanResult.inference_time_ms}ms` : '--'}
               </span>

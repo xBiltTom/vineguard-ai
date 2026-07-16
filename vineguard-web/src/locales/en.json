@@ -1,0 +1,20 @@
+{
+  "header_subtitle": "Precision Foliar Diagnostics v2.0",
+  "drop_title": "Drop leaf sample here",
+  "drop_desc": "Upload a high-resolution image of a grapevine leaf. The AI will scan for Esca, Black Rot, or Leaf Blight.",
+  "btn_scan_init": "INITIALIZE SCAN",
+  "btn_scan_loading": "ANALYZING TISSUE...",
+  "system_status": "System Status",
+  "awaiting_input": "Awaiting visual input...",
+  "computing_tensor": "Computing tensor...",
+  "diagnosis_complete": "Diagnosis Complete",
+  "engine": "Engine",
+  "confidence": "Confidence",
+  "latency": "Latency",
+  "chat_placeholder": "Type your query...",
+  "chat_transcribing": "Transcribing with Whisper...",
+  "chat_assistant_title": "AI Agronomic Assistant",
+  "chat_welcome": "Hello! I'm VineGuard AI. Do you have any questions about vineyard care?",
+  "error_api_conn": "Connection error with FastAPI.",
+  "error_mic_access": "Error: Could not access microphone. Please check browser permissions."
+}

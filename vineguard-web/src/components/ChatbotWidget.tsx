@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageSquare, X, Send, Mic, MicOff, Bot, User, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatMessage {
   role: "user" | "bot";
@@ -9,6 +10,7 @@ interface ChatMessage {
 }
 
 export default function ChatbotWidget() {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "bot", content: "¡Hola! Soy VineGuard AI. ¿Tienes alguna pregunta sobre el cuidado de tu viñedo?" }
@@ -21,6 +23,11 @@ export default function ChatbotWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  // Update initial message when language changes
+  useEffect(() => {
+    setMessages([{ role: "bot", content: t("chat_welcome") }]);
+  }, [language]);
 
   // Auto-scroll
   useEffect(() => {
@@ -58,7 +65,7 @@ export default function ChatbotWidget() {
         console.error("Error accessing microphone:", error);
         setMessages(prev => [...prev, { 
           role: "bot", 
-          content: "Error: No pude acceder al micrófono. Por favor verifica los permisos del navegador." 
+          content: t("error_mic_access")
         }]);
       }
     }
@@ -84,7 +91,7 @@ export default function ChatbotWidget() {
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: "bot", 
-        content: "Error: No se pudo transcribir el audio. Verifica tu API Key o conexión al servidor." 
+        content: t("error_api_conn")
       }]);
     } finally {
       setIsTranscribing(false);
@@ -104,7 +111,7 @@ export default function ChatbotWidget() {
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, language: "es" })
+        body: JSON.stringify({ message: userMessage, language: language })
       });
 
       if (!response.ok) throw new Error("API Error");
@@ -112,7 +119,7 @@ export default function ChatbotWidget() {
       const data = await response.json();
       setMessages(prev => [...prev, { role: "bot", content: data.response }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: "bot", content: "Error de conexión con FastAPI." }]);
+      setMessages(prev => [...prev, { role: "bot", content: t("error_api_conn") }]);
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +149,7 @@ export default function ChatbotWidget() {
           <div className="bg-[#121513] px-4 py-3 flex justify-between items-center border-b border-[var(--border-color)]">
             <div className="flex items-center gap-2 text-white">
               <Bot className="w-5 h-5 text-[var(--accent)]" />
-              <span className="font-medium text-sm">Asistente Agronómico AI</span>
+              <span className="font-medium text-sm">{t("chat_assistant_title")}</span>
             </div>
             <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white transition-colors">
               <X className="w-5 h-5" />
@@ -185,7 +192,7 @@ export default function ChatbotWidget() {
               onClick={toggleListen}
               disabled={isTranscribing}
               className={`p-2 rounded-full transition-colors relative ${isListening ? 'bg-red-500/20 text-red-500' : 'bg-[var(--background)] text-gray-400 hover:text-[var(--accent)]'}`}
-              title="Dictado por voz"
+              title="Voice Dictation"
             >
               {isTranscribing ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -200,7 +207,7 @@ export default function ChatbotWidget() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isTranscribing ? "Transcribiendo con Groq Whisper..." : "Escribe tu consulta..."}
+              placeholder={isTranscribing ? t("chat_transcribing") : t("chat_placeholder")}
               disabled={isTranscribing}
               className="flex-1 max-h-20 min-h-[40px] p-2 text-sm bg-[var(--background)] border border-[var(--border-color)] rounded-lg focus:outline-none focus:border-[var(--accent)] resize-none disabled:opacity-50"
               rows={1}

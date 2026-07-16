@@ -1,0 +1,20 @@
+{
+  "header_subtitle": "Diagnóstico Foliar de Precisión v2.0",
+  "drop_title": "Suelta la muestra de hoja aquí",
+  "drop_desc": "Sube una imagen de alta resolución de una hoja de vid. La IA escaneará buscando Esca, Podredumbre Negra o Tizón de la Hoja.",
+  "btn_scan_init": "INICIALIZAR ESCANEO",
+  "btn_scan_loading": "ANALIZANDO TEJIDO...",
+  "system_status": "Estado del Sistema",
+  "awaiting_input": "Esperando entrada visual...",
+  "computing_tensor": "Procesando tensor...",
+  "diagnosis_complete": "Diagnóstico Completado",
+  "engine": "Motor",
+  "confidence": "Confianza",
+  "latency": "Latencia",
+  "chat_placeholder": "Escribe tu consulta...",
+  "chat_transcribing": "Transcribiendo con Whisper...",
+  "chat_assistant_title": "Asistente Agronómico AI",
+  "chat_welcome": "¡Hola! Soy VineGuard AI. ¿Tienes alguna pregunta sobre el cuidado de tu viñedo?",
+  "error_api_conn": "Error de conexión con FastAPI.",
+  "error_mic_access": "Error: No pude acceder al micrófono. Verifica los permisos."
+}
