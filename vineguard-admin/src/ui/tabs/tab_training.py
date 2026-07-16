@@ -130,7 +130,6 @@ def render():
         
         if st.session_state.get('hardware_ok', False):
             st.success(st.session_state.hw_message)
-            hardware_warning = ""
             btn_disabled = False
         else:
             st.markdown(f"""
@@ -139,12 +138,13 @@ def render():
                 <p><strong>{st.session_state.hw_message}</strong></p>
                 <p>Entrenar arquitecturas profundas con Validación Cruzada de 5-folds requiere aceleración por hardware (GPU/TPU).
                 Forzar este flujo en la CPU actual provocaría un colapso del sistema o demoraría múltiples días.</p>
-                <p><strong>Solución recomendada:</strong> Toma la carpeta <code>dataset_cleaned/</code>, súbela a tu Google Drive, y ejecuta la lógica de entrenamiento en Google Colab.</p>
+                <p><strong>Solución profesional:</strong> Entrena el modelo en Google Colab, descarga el archivo <code>history.json</code> generado y súbelo en la pestaña de al lado.</p>
             </div>
             """, unsafe_allow_html=True)
             btn_disabled = True
+            
     else:
-        st.info("👆 Ejecuta el análisis de hardware para desbloquear el entrenamiento.")
+        st.info("👆 Ejecuta el análisis de hardware para evaluar tu sistema local.")
         btn_disabled = True
         
     with col_train:
@@ -152,3 +152,57 @@ def render():
         if st.button("🚀 Iniciar Entrenamiento", type="primary", disabled=btn_disabled, use_container_width=True):
             st.success("Iniciando pipeline de entrenamiento en hardware acelerado...")
             # Aquí iría la lógica real si tuvieran GPU
+            
+    st.markdown("---")
+    
+    st.subheader("📈 Estadísticas de Entrenamiento en la Nube (Visualizador)")
+    st.markdown("Si entrenaste los modelos en Google Colab u otra nube con GPU, puedes cargar aquí el archivo `history.json` para visualizar las métricas y presentarlas al jurado.")
+    
+    import json
+    import pandas as pd
+    
+    uploaded_history = st.file_uploader("📂 Sube el archivo history.json", type=["json"])
+    
+    if uploaded_history is not None:
+        try:
+            history_data = json.load(uploaded_history)
+            
+            # Verificar formato (Keras history)
+            if 'accuracy' in history_data and 'loss' in history_data:
+                st.success("✅ Historial cargado con éxito. Procesando gráficos...")
+                
+                epochs = range(1, len(history_data['accuracy']) + 1)
+                
+                # Crear DataFrame para Precisión
+                acc_df = pd.DataFrame({
+                    'Época': epochs,
+                    'Precisión (Train)': history_data.get('accuracy', []),
+                    'Precisión (Val)': history_data.get('val_accuracy', [])
+                }).set_index('Época')
+                
+                # Crear DataFrame para Pérdida
+                loss_df = pd.DataFrame({
+                    'Época': epochs,
+                    'Pérdida (Train)': history_data.get('loss', []),
+                    'Pérdida (Val)': history_data.get('val_loss', [])
+                }).set_index('Época')
+                
+                col_acc, col_loss = st.columns(2)
+                
+                with col_acc:
+                    st.markdown("#### Curva de Precisión (Accuracy)")
+                    st.line_chart(acc_df, color=["#4ECDC4", "#FF6B6B"])
+                    st.caption("A mayor precisión, el modelo es mejor distinguiendo enfermedades.")
+                    
+                with col_loss:
+                    st.markdown("#### Curva de Pérdida (Loss)")
+                    st.line_chart(loss_df, color=["#4ECDC4", "#FF6B6B"])
+                    st.caption("A menor pérdida, el modelo tiene menos dudas en sus predicciones.")
+                    
+                st.info("💡 **Consejo de Sustentación:** Muestra cómo la curva de validación se acerca a la de entrenamiento. Si ambas suben juntas sin separarse abruptamente, demuestra que **no hay Overfitting**.")
+                
+            else:
+                st.error("El archivo JSON no tiene el formato estándar de Keras (faltan llaves 'accuracy' o 'loss').")
+                
+        except Exception as e:
+            st.error(f"Error procesando el JSON: {str(e)}")
