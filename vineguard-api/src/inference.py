@@ -13,7 +13,7 @@ MODEL_CACHE = None
 
 def get_model_path():
     # El archivo exportado por el Admin Streamlit
-    return os.path.join(os.path.dirname(__file__), '..', 'best_model', 'production_model.h5')
+    return os.path.join(os.path.dirname(__file__), '..', 'best_model', 'best_model.keras')
 
 def load_production_model():
     global MODEL_CACHE

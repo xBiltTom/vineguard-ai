@@ -199,6 +199,16 @@ def render():
                     st.line_chart(loss_df, color=["#4ECDC4", "#FF6B6B"])
                     st.caption("A menor pérdida, el modelo tiene menos dudas en sus predicciones.")
                     
+                # Si el JSON nuevo tiene la curva de Learning Rate (Fine-Tuning), graficarla también
+                if 'learning_rate' in history_data:
+                    st.markdown("#### 📉 Evolución del Learning Rate (Fine-Tuning)")
+                    lr_df = pd.DataFrame({
+                        'Época': epochs,
+                        'Learning Rate': history_data.get('learning_rate', [])
+                    }).set_index('Época')
+                    st.line_chart(lr_df, color=["#FFB84C"])
+                    st.caption("Se observa la caída drástica del Learning Rate durante la Fase 2 (Ajuste Fino / Fine-Tuning).")
+                    
                 st.info("💡 **Consejo de Sustentación:** Muestra cómo la curva de validación se acerca a la de entrenamiento. Si ambas suben juntas sin separarse abruptamente, demuestra que **no hay Overfitting**.")
                 
             else:
