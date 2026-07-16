@@ -206,7 +206,9 @@ export default function ScannerDashboard() {
                     </div>
                     <div>
                       <p className="text-xs font-mono opacity-50 tracking-widest uppercase mb-1">{t("diagnosis_complete")}</p>
-                      <h2 className={`text-4xl font-extrabold ${ui.color} tracking-tight`}>{scanResult.predicted_class.replace('_', ' ')}</h2>
+                      <h3 className="text-4xl sm:text-5xl font-black mb-4 tracking-tight drop-shadow-md group-hover:text-[var(--accent)] transition-colors">
+                        {t("class_" + scanResult.predicted_class)}
+                      </h3>
                     </div>
                   </div>
                   <div className="bg-[var(--background)]/40 p-5 rounded-xl border border-[var(--border-color)] w-full">
@@ -246,7 +248,7 @@ export default function ScannerDashboard() {
                   return (
                     <div key={className} className="flex flex-col gap-2">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className={isWinner ? "font-bold text-[var(--foreground)] tracking-wide" : "opacity-60"}>{className.replace('_', ' ')}</span>
+                        <span className={isWinner ? "font-bold text-[var(--foreground)] tracking-wide" : "opacity-60"}>{t("class_" + className)}</span>
                         <span className={isWinner ? "font-bold text-[var(--foreground)]" : "opacity-60"}>{percentage}%</span>
                       </div>
                       <div className="h-2 w-full bg-[#090C10] rounded-full overflow-hidden border border-white/5">
