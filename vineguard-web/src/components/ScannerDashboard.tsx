@@ -62,7 +62,8 @@ export default function ScannerDashboard() {
     try {
       const minDelay = new Promise(resolve => setTimeout(resolve, 1500));
       
-      const apiCall = fetch("http://localhost:8000/api/predict", {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiCall = fetch(`${API_URL}/api/predict`, {
         method: "POST",
         body: formData,
       });
