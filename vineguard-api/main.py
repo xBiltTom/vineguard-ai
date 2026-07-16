@@ -23,9 +23,17 @@ app.add_middleware(
 )
 
 # ==== MODELOS DE DATOS ====
+class ChatMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
 class ChatRequest(BaseModel):
     message: str
     language: str = "es"
+    # Historial de conversación (ventana deslizante gestionada en el backend)
+    history: list[ChatMessage] = []
+    # Contexto del último escaneo (opcional, inyectado silenciosamente al system prompt)
+    last_scan: dict | None = None
 
 # ==== EVENTOS DE INICIO ====
 @app.on_event("startup")
@@ -77,10 +85,18 @@ async def predict_disease(image: UploadFile = File(...)):
 @app.post("/api/chat")
 async def chat_bot(request: ChatRequest):
     """
-    Recibe un mensaje del agricultor y devuelve una respuesta agronómica.
+    Recibe un mensaje del agricultor con su historial y devuelve una respuesta agronómica.
+    Soporta contexto del último escaneo para respuestas personalizadas.
     """
     try:
-        response = generate_chatbot_response(request.message, request.language)
+        # Convertir los objetos ChatMessage a dicts para LiteLLM
+        history_dicts = [{"role": m.role, "content": m.content} for m in request.history]
+        response = generate_chatbot_response(
+            message=request.message,
+            language=request.language,
+            history=history_dicts,
+            last_scan=request.last_scan
+        )
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

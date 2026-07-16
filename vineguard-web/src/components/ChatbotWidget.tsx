@@ -3,14 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageSquare, X, Send, Mic, MicOff, Bot, User, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useScan } from "@/contexts/ScanContext";
 
 interface ChatMessage {
-  role: "user" | "bot";
+  role: "user" | "bot" | "assistant";
   content: string;
 }
 
 export default function ChatbotWidget() {
   const { t, language } = useLanguage();
+  const { lastScan } = useScan();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "bot", content: "¡Hola! Soy VineGuard AI. ¿Tienes alguna pregunta sobre el cuidado de tu viñedo?" }
@@ -104,6 +106,14 @@ export default function ChatbotWidget() {
     const userMessage = inputText.trim();
     setInputText("");
     
+    // Snapshot del historial ANTES de agregar el nuevo mensaje del usuario
+    const historySnapshot = messages
+      .filter(m => m.role !== "bot" || messages.indexOf(m) !== 0) // excluir mensaje de bienvenida estático
+      .map(m => ({
+        role: m.role === "bot" ? "assistant" : "user",
+        content: m.content
+      }));
+    
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
@@ -111,7 +121,12 @@ export default function ChatbotWidget() {
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, language: language })
+        body: JSON.stringify({
+          message: userMessage,
+          language: language,
+          history: historySnapshot,        // <- Historial con ventana deslizante
+          last_scan: lastScan ?? null      // <- Contexto del último diagnóstico
+        })
       });
 
       if (!response.ok) throw new Error("API Error");

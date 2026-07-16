@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ScanProvider } from "@/contexts/ScanContext";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <LanguageProvider>
-            {children}
+            <ScanProvider>
+              {children}
+            </ScanProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

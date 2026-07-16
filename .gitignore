@@ -80,3 +80,7 @@ scripts/
 archive.zip
 
 dataset_cleaned/
+history.json
+
+colab_training_script.md 
+colab_training_v2.md 

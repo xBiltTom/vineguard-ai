@@ -3,9 +3,11 @@
 import { useState, useRef } from "react";
 import { ScanLine, UploadCloud, AlertTriangle, CheckCircle, Bug } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useScan } from "@/contexts/ScanContext";
 
 export default function ScannerDashboard() {
   const { t, language } = useLanguage();
+  const { setLastScan } = useScan();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -74,6 +76,7 @@ export default function ScannerDashboard() {
 
       const data = await res.json();
       setScanResult(data);
+      setLastScan(data); // <-- Publica el resultado al contexto global
       
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -243,8 +246,8 @@ export default function ScannerDashboard() {
                   return (
                     <div key={className} className="flex flex-col gap-2">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className={isWinner ? "font-bold text-white tracking-wide" : "opacity-60"}>{className.replace('_', ' ')}</span>
-                        <span className={isWinner ? "font-bold text-white" : "opacity-60"}>{percentage}%</span>
+                        <span className={isWinner ? "font-bold text-[var(--foreground)] tracking-wide" : "opacity-60"}>{className.replace('_', ' ')}</span>
+                        <span className={isWinner ? "font-bold text-[var(--foreground)]" : "opacity-60"}>{percentage}%</span>
                       </div>
                       <div className="h-2 w-full bg-[#090C10] rounded-full overflow-hidden border border-white/5">
                         <div 
@@ -280,25 +283,62 @@ export default function ScannerDashboard() {
             </ul>
           </div>
 
-          {/* Panel 3: Telemetría y Reporte */}
+          {/* Panel 3: Análisis Avanzado y Reporte */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6 shadow-sm flex flex-col justify-between">
             <div>
               <h4 className="text-xs uppercase tracking-widest font-bold opacity-50 mb-6 flex items-center gap-2">
-                <span className="text-[var(--accent)]">/</span> TELEMETRÍA DE SISTEMA
+                <span className="text-[var(--accent)]">/</span> MÉTRICAS DE PRECISIÓN
               </h4>
               
-              <div className="flex flex-col gap-4 bg-[var(--background)]/30 p-5 rounded-lg border border-[var(--border-color)]/50">
-                <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)]/50">
-                  <span className="text-xs opacity-60 tracking-wider">MOTOR IA</span>
-                  <span className="text-xs font-mono font-bold text-[var(--accent)]">VineGuard Core v2</span>
+              <div className="flex flex-col gap-6">
+                {/* Donut Chart SVG */}
+                <div className="flex items-center justify-between bg-[var(--background)]/30 p-4 rounded-lg border border-[var(--border-color)]/50">
+                  <div className="flex flex-col">
+                    <span className="text-xs opacity-60 tracking-wider mb-1">ÍNDICE DE CONFIANZA</span>
+                    <span className="text-2xl font-bold text-[var(--foreground)]">{(scanResult.confidence * 100).toFixed(1)}<span className="text-sm opacity-50">%</span></span>
+                    <span className="text-[10px] font-mono text-[var(--accent)] mt-1">LATENCIA: {scanResult.inference_time_ms}ms</span>
+                  </div>
+                  
+                  <div className="relative w-20 h-20">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      {/* Círculo de fondo */}
+                      <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-gray-200 dark:text-gray-800" />
+                      {/* Círculo de progreso */}
+                      <circle 
+                        cx="50" 
+                        cy="50" 
+                        r="40" 
+                        stroke="currentColor" 
+                        strokeWidth="8" 
+                        fill="transparent" 
+                        strokeDasharray="251.2" 
+                        strokeDashoffset={251.2 - (scanResult.confidence * 251.2)} 
+                        strokeLinecap="round"
+                        className={`${
+                          scanResult.confidence > 0.85 ? 'text-emerald-500' : 
+                          scanResult.confidence > 0.60 ? 'text-yellow-500' : 'text-red-500'
+                        } transition-all duration-1500 ease-out`} 
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[10px] font-bold">IA</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center pb-3 border-b border-[var(--border-color)]/50">
-                  <span className="text-xs opacity-60 tracking-wider">LATENCIA DE RED</span>
-                  <span className="text-xs font-mono font-bold text-white">{scanResult.inference_time_ms} ms</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs opacity-60 tracking-wider">MARGEN DE CONFIANZA</span>
-                  <span className="text-xs font-mono font-bold text-white">{(scanResult.confidence * 100).toFixed(2)}%</span>
+
+                {/* Risk Level Indicator */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs opacity-60 tracking-wider">NIVEL DE RIESGO BIOLÓGICO</span>
+                  <div className="flex gap-1 h-3 w-full">
+                    <div className={`h-full flex-1 rounded-l-full ${['Black_rot', 'Esca', 'Leaf_blight'].includes(scanResult.predicted_class) ? 'bg-yellow-500' : 'bg-emerald-500 shadow-[0_0_8px_#10B981]'}`}></div>
+                    <div className={`h-full flex-1 ${['Black_rot', 'Esca'].includes(scanResult.predicted_class) ? 'bg-orange-500' : 'bg-[var(--border-color)] opacity-30'}`}></div>
+                    <div className={`h-full flex-1 rounded-r-full ${['Black_rot', 'Esca'].includes(scanResult.predicted_class) ? 'bg-red-500 shadow-[0_0_8px_#EF4444] animate-pulse' : 'bg-[var(--border-color)] opacity-30'}`}></div>
+                  </div>
+                  <div className="flex justify-between text-[9px] font-mono opacity-50 uppercase px-1 mt-1">
+                    <span>Bajo</span>
+                    <span>Medio</span>
+                    <span>Crítico</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -306,9 +346,9 @@ export default function ScannerDashboard() {
             <div className="mt-6">
               <button 
                 onClick={() => window.print()}
-                className="w-full border border-[var(--border-color)] hover:border-[var(--accent)] hover:bg-[var(--accent)]/10 text-white p-4 rounded-lg text-xs font-bold tracking-widest uppercase transition-all flex justify-center items-center gap-2"
+                className="w-full border border-[var(--border-color)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black text-[var(--foreground)] p-4 rounded-lg text-xs font-bold tracking-widest uppercase transition-all flex justify-center items-center gap-2 group"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:animate-bounce"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                 Exportar Reporte
               </button>
             </div>
